@@ -33,6 +33,6 @@ For more information, see the [controllers README](/controller/)
 * Add REST-API
 * Add web frontend (Should be mobile-friendly)
 * Make the number of LEDs dynamic
-..* Support for multiple candlesticks in the controller software.
-..* Add a "super controller" that can command multiple candlesticks.
+  * Support for multiple candlesticks in the controller software.
+  * Add a "super controller" that can command multiple candlesticks.
 * Implement basic light patterns in the Arduino code so that it can run without a dedicated controller.
