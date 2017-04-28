@@ -1,7 +1,7 @@
 # The RGB Candlestick for Christmas
 This is the code and a short howto about how I made my RGB LED candlestick for last christmas.
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=RDOWLQ8P0aQ" target="_blank"><imgsrc="http://img.youtube.com/vi/RDOWLQ8P0aQ/0.jpg" alt="YouTube Video_" width="240" height="180" border="10"></imgsrc></a>
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=RDOWLQ8P0aQ" target="_blank"><imgsrc="http://img.youtube.com/vi/RDOWLQ8P0aQ/0.jpg" alt="YouTube Video_" width="240" height="180" border="10" /></a>
 
 ### Goals:
 * Can be controlled by any computer, including Raspberry Pi (requires Python and a USB port)
