@@ -15,6 +15,6 @@ Insert the RGB leds, glue in place, and solder on some extension wires. Pictures
 More Pictures will be added at a later time.
 
 After inserting your custom made bulbs, the candlestick should look something like this:  
-<img src="images/wire_up.jpg.jpg" width="400">
+<img src="images/wire_up.jpg" width="400">
 
 Solder everything together, and verify that it works before assembling the candlestick again.
