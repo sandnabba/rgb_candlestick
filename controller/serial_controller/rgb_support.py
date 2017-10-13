@@ -3,7 +3,7 @@ from time import sleep
 from serial import Serial
 
 #ser = Serial('/dev/ttyACM0', 57600)  # open serial port
-ser = Serial('/dev/ttyUSB0', 57600)
+# ser = Serial('/dev/ttyUSB0', 57600)
 
 # Here is where we modify our local leds:
 led = [
@@ -74,8 +74,8 @@ def commit(direction=None):
         ]
 
 
-    #print(values)
-    serial_write(values)
+    print(values)
+    # serial_write(values)
 
 def serial_write(values):
     #ser.reset_input_buffer()

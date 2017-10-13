@@ -1,4 +1,4 @@
-from rgb_support import *
+from .rgb_support import *
 import random
 
 def studs(rounds=None, direction=None, delay=0.3, color=None):
