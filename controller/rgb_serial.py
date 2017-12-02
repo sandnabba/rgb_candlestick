@@ -10,7 +10,8 @@ import random
 functions = {
     'fall': p.fall,
     'wave': p.wave,
-    'studs': p.studs
+    'studs': p.studs,
+    'rb': p.rb,
 }
 
 if __name__ == "__main__":
@@ -22,6 +23,7 @@ if __name__ == "__main__":
     functions['wave']()
     functions['fall']()
 
-def run(program):
+def run(program, speed):
+    print("Speed: ", speed.value)
     while True:
-        functions[program]()
+        functions[program](speed=speed)

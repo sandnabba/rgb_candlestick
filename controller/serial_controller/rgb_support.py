@@ -3,7 +3,7 @@ from time import sleep
 from serial import Serial
 
 #ser = Serial('/dev/ttyACM0', 57600)  # open serial port
-# ser = Serial('/dev/ttyUSB0', 57600)
+ser = Serial('/dev/ttyUSB0', 57600)
 
 # Here is where we modify our local leds:
 led = [
@@ -74,8 +74,8 @@ def commit(direction=None):
         ]
 
 
-    print(values)
-    # serial_write(values)
+    #print(values)
+    serial_write(values)
 
 def serial_write(values):
     #ser.reset_input_buffer()
@@ -161,7 +161,6 @@ def fade_led(i, new_value, speed=5):
     else:
         return True
 
-
 def slow_fade_all(color=False):
     #set_all()
     if not color:
@@ -175,3 +174,8 @@ def slow_fade_all(color=False):
         sleep(0.01)
         commit()
     print("Done")
+
+def speed_sleep(delay, speed):
+    print("Base delay: ", delay, "Speed: ", speed.value)
+    sleep_delay = delay / speed.value
+    sleep(sleep_delay)
