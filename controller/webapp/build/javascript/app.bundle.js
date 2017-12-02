@@ -1823,7 +1823,7 @@ function set_program(value) {
   console.log("Program is:", value)
   m.request({
     method: "POST",
-    url: "/",
+    url: "/api",
     data: {
       "program": value,
     }
@@ -1833,7 +1833,7 @@ function set_speed(value) {
   console.log("Speed is:", value)
   m.request({
     method: "POST",
-    url: "/",
+    url: "/api",
     data: {
       "speed": value,
     }
@@ -1843,7 +1843,7 @@ function set_mode(value) {
   console.log("Mode is:", value)
   m.request({
     method: "POST",
-    url: "/",
+    url: "/api",
     data: {
       "direction": value,
     }

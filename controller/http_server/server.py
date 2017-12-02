@@ -3,7 +3,7 @@ import os.path
 
 def run(messagebus):
     app = Flask(__name__)
-    @app.route('/', methods=['GET', 'POST'])
+    @app.route('/api', methods=['GET', 'POST'])
     def root():
         if request.method == 'POST':
             print(request.get_json())
