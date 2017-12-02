@@ -1,7 +1,7 @@
-from rgb_support import *
+from .rgb_support import *
 import random
 
-def studs(rounds=None, direction=None, delay=0.3, color=None):
+def bounce(rounds=None, direction=None, delay=0.3, color=None, speed=10):
     if not direction:
         direction = random.choice(directions)
     if direction is "right" or direction is "left":
@@ -21,18 +21,20 @@ def studs(rounds=None, direction=None, delay=0.3, color=None):
             local_color = get_random_color()
         for x in range(led_count):
             set_led(x, local_color, True, direction)
-            sleep(delay)
+            # sleep(delay)
+            speed_sleep(delay, speed)
             set_led(x, black, False, direction)
         local_color = get_random_color()
         for x in range(led_count,-1,-1):
             set_led(x, local_color, True, direction)
-            sleep(delay)
+            # sleep(delay)
+            speed_sleep(delay, speed)
             set_led(x, black, False, direction)
         counter += 1
         print(counter, "", end="", flush=True)
     print()
 
-def random_studs(delay=0.5):
+def random_studs(delay=0.5, speed=1):
     set_all()
     for x in range(6):
         set_led(x, get_random_color())
@@ -43,10 +45,12 @@ def random_studs(delay=0.5):
         sleep(delay)
         set_led(x, black, False)
 
-def wave(rounds=None, direction=None, delay=0.4, color=False):
-    if not direction:
+def wave(rounds=None, direction=None, delay=0.4, color=False, speed=10):
+    if direction == None:
         direction = random.choice(directions)
-        print("Direction: ", direction)
+        print("Direction not set, going: ", direction)
+    else:
+        print("Direction set to: ", direction)
     if direction is "right" or direction is "left":
         led_count = 7
     else:
@@ -63,12 +67,12 @@ def wave(rounds=None, direction=None, delay=0.4, color=False):
             local_color = get_random_color()
         for x in range(led_count):
             set_led(x, local_color, True, direction)
-            sleep(delay)
+            speed_sleep(delay, speed)
         counter += 1
         print(counter, "", end="", flush=True)
     print()
 
-def fall(rounds=None, direction=None, delay=0.15, color=None):
+def fall(rounds=None, direction=None, delay=0.15, color=None, speed=10):
     # if not direction:
     #     direction = random.choice(directions)
     if direction is "right" or direction is "left":
@@ -93,7 +97,7 @@ def fall(rounds=None, direction=None, delay=0.15, color=None):
             if x is 6:
                 set_led(3, local_color, False, direction)
             set_led(x, local_color, True, direction)
-            sleep(delay)
+            speed_sleep(delay, speed)
             set_led(x, black, False, direction)
 
         for x in [2, 1, 0]:
@@ -102,7 +106,7 @@ def fall(rounds=None, direction=None, delay=0.15, color=None):
             if x is 0:
                 set_led(3, local_color, False, direction)
             set_led(x, local_color, True, direction)
-            sleep(delay)
+            speed_sleep(delay, speed)
             set_led(x, black, False, direction)
         counter += 1
         print(counter, "", end="", flush=True)
@@ -152,7 +156,7 @@ def debug(direction=None):
     set_full_array(led, direction)
 
 
-def rb(rounds=21, direction=None, delay=0.5):
+def rb(rounds=21, direction=None, delay=0.5, speed=10):
     if not direction:
         direction = random.choice(directions)
     print("RainBow, direction: ", direction)

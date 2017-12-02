@@ -3,28 +3,44 @@
 
 # import time
 from time import sleep
-import rgb_patterns as p
+from serial_controller import rgb_patterns as p
 import sys
 import random
 
-# functions = {
-#     'a': p.studs(),
-#     'b': p.random_studs(),
-#     'c': p.vert_rb()
-# }
-#
-# try:
-#     program = int(sys.argv[1])
-# except:
-#     program = "a"
-#     pass
+functions = {
+    'fall': p.fall,
+    'wave': p.wave,
+    'bounce': p.bounce,
+    'rb': p.rb,
+}
 
-#function = functions[program]
 
-counter = 0
+def run_random(speed):
+    print("Starting a random program")
+    print(functions.keys())
+    program = random.choice(list(functions.keys()))
+    print("Starting: ", program)
+    functions[program](speed=speed)
 
-while 1:
-    p.wave()
-    p.studs()
-    p.rb()
-    p.fall()
+
+if __name__ == "__main__":
+    print("Starting RBG serial")
+
+    # We should pic a random function from the functions list
+    # and add some random arguments as well
+
+    functions['wave']()
+    functions['fall']()
+
+def run(program, speed, direction=None):
+    # print("Speed: ", speed.value)
+    # print("Direction: ", direction)
+    # print("Program type: ", type(program))
+    # print("Speed type: ", type(speed))
+    # print("direction type: ", type(direction))
+
+    while True:
+        if program == "random":
+            run_random(speed)
+        else:
+            functions[program](speed=speed, direction=direction)

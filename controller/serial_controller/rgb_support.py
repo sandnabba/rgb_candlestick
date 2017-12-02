@@ -161,7 +161,6 @@ def fade_led(i, new_value, speed=5):
     else:
         return True
 
-
 def slow_fade_all(color=False):
     #set_all()
     if not color:
@@ -175,3 +174,11 @@ def slow_fade_all(color=False):
         sleep(0.01)
         commit()
     print("Done")
+
+def speed_sleep(delay, speed):
+    # print("Base delay: ", delay, "Speed: ", speed.value)
+    if type(speed) is int:
+        sleep_delay = delay / ((speed * 10) / 100)
+    else:
+        sleep_delay = delay / ((speed.value * 10) / 100)
+    sleep(sleep_delay)
