@@ -10,9 +10,18 @@ import random
 functions = {
     'fall': p.fall,
     'wave': p.wave,
-    'studs': p.studs,
+    'bounce': p.bounce,
     'rb': p.rb,
 }
+
+
+def run_random(speed):
+    print("Starting a random program")
+    print(functions.keys())
+    program = random.choice(list(functions.keys()))
+    print("Starting: ", program)
+    functions[program](speed=speed)
+
 
 if __name__ == "__main__":
     print("Starting RBG serial")
@@ -23,7 +32,15 @@ if __name__ == "__main__":
     functions['wave']()
     functions['fall']()
 
-def run(program, speed):
-    print("Speed: ", speed.value)
+def run(program, speed, direction=None):
+    # print("Speed: ", speed.value)
+    # print("Direction: ", direction)
+    # print("Program type: ", type(program))
+    # print("Speed type: ", type(speed))
+    # print("direction type: ", type(direction))
+
     while True:
-        functions[program](speed=speed)
+        if program == "random":
+            run_random(speed)
+        else:
+            functions[program](speed=speed, direction=direction)

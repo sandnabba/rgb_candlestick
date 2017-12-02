@@ -1,4 +1,4 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request
 import os.path
 
 def run(messagebus):
@@ -6,12 +6,14 @@ def run(messagebus):
     @app.route('/', methods=['GET', 'POST'])
     def root():
         if request.method == 'POST':
-            if request.form.get('program') != None:
-                print("Clicked:", request.form.get('program'))
-                messagebus.put({'program': request.form.get('program')})
-            if request.form.get('speed') != None:
-                print("Clicked:", request.form.get('speed'))
-                messagebus.put({'speed': request.form.get('speed')})
-        return app.send_static_file('index.html')
+            print(request.get_json())
+            messagebus.put(request.get_json())
+            # data = request.get_json()
+            # if 'speed' in data:
+            #     messagebus.put({'speed': data['speed']})
+            # if 'program' in data:
+            #     messagebus.put({'program': data['program']})
+
+        return "", 204
 
     app.run()

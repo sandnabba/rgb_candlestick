@@ -22,10 +22,24 @@ def httpProcess(messagebus):
     print("Starting httpProcess")
     http_server.run(messagebus)
 
+
+def restart_candle(candle, program, speed, direction):
+    if candle.is_alive():
+        candle.terminate()
+    candle = Process(target=rgb_serial.run, args=(program, speed, direction))
+    candle.start()
+    return(candle)
+
+
 def main():
     signal.signal(signal.SIGINT, signal_handler)
     print("Starting Main Thread")
-    speed = Value('i', 1)
+
+    # Defaults:
+    speed = Value('i', 10)
+    # direction = "left"
+    direction = None
+    program = "random"
 
     # Start HTTP server:
     messagebus = Queue()
@@ -35,32 +49,39 @@ def main():
 
 
     # Start a default program:
-    candle = Process(target=rgb_serial.run, args=("rb", speed))
+    candle = Process(target=rgb_serial.run, args=(program, speed, direction))
     candle.start()
 
     while True:
         print("Waiting for message....")
         data = messagebus.get()
+        # print("Main recieved: ", data)
 
-        try:
-            if data['program'] != None:
-                if candle.is_alive():
-                    candle.terminate()
-                if data['program'] == "stop":
-                    print("Stopping")
-                else:
-                    # Recreate a new process:
-                    candle = Process(target=rgb_serial.run, args=(data['program'], speed))
-                    candle.start()
-        except KeyError:
-            pass
+        if 'direction' in data:
+            if data['direction'] == "left":
+                direction = "left"
+            if data['direction'] == "right":
+                direction = "right"
+            if data['direction'] == "up":
+                direction = "up"
+            if data['direction'] == "down":
+                direction = "down"
+            # print("Setting direction to: ", direction)
+            candle = restart_candle(candle, program, speed, direction)
 
-        try:
-            if data['speed'] != None:
-                print("Setting speed to: ", data['speed'])
-                speed.value = int(data['speed'])
-        except KeyError:
-            pass
+        if 'program' in data:
+            program = data['program']
+            if data['program'] == "stop":
+                print("Stopping")
+                candle.terminate()
+            else:
+                # Recreate a new process:
+                candle = restart_candle(candle, program, speed, direction)
+
+        if 'speed' in data:
+            # print("Setting speed to: ", data['speed'])
+            speed.value = int(data['speed'])
+
 
     server.join()
     print("Exiting Main Thread")

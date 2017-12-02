@@ -176,6 +176,9 @@ def slow_fade_all(color=False):
     print("Done")
 
 def speed_sleep(delay, speed):
-    print("Base delay: ", delay, "Speed: ", speed.value)
-    sleep_delay = delay / speed.value
+    # print("Base delay: ", delay, "Speed: ", speed.value)
+    if type(speed) is int:
+        sleep_delay = delay / ((speed * 10) / 100)
+    else:
+        sleep_delay = delay / ((speed.value * 10) / 100)
     sleep(sleep_delay)
