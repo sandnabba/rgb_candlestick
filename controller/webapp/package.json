@@ -1,0 +1,19 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack src/index.js src/app.js --watch --display-error-details",
+    "watch": "webpack --config webpack.config.js --progress --colors --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mithril": "^1.1.6",
+    "mithril-range": "^0.1.0",
+    "webpack": "^3.9.1"
+  }
+}
