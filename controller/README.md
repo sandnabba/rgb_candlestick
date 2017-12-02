@@ -1,6 +1,15 @@
 # Controller software
 The controller is a simple python application sending an array of bytes (a frame) over a serial connection to the candlestick.
 
+## Requirements
+
+### Ubuntu / Debian
+First install the necessary dependencies:  
+`apt-get install python3-flask python3-serial`
+
+To be able to run the program as user, add your self to the dialout group:  
+`sudo usermod -a -G dialout $USER`
+
 ## The candlestick frame format
 Each light is an RGB diode, requiering 3 bytes, Red, Green and Blue.
 Each frame starts with one preamble, a byte of 255 and ends with one byte of 254.  
