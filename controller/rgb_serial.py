@@ -13,14 +13,13 @@ functions = {
     'bounce': p.bounce,
     'rb': p.rb,
     'cop': p.cop,
+    'rb2': p.rb, # Extra rainbow, just because it's beautiful :)
 }
 
 
 def run_random(speed=10):
-    print("Starting a random program")
-    print(functions.keys())
     program = random.choice(list(functions.keys()))
-    print("Starting: ", program)
+    print("Random program, Starting: ", program)
     functions[program](speed=speed)
 
 
@@ -30,6 +29,7 @@ if __name__ == "__main__":
         run_random()
 
     # functions['cop']()
+    # functions['wave']()
 
 def run(program, speed, direction=None):
     # print("Speed: ", speed.value)

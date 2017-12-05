@@ -1,6 +1,7 @@
 from random import randint
 from time import sleep
 from serial import Serial
+import copy
 
 #ser = Serial('/dev/ttyACM0', 57600)  # open serial port
 ser = Serial('/dev/ttyUSB0', 57600)
@@ -28,7 +29,7 @@ black = [0, 0, 0]
 directions = ["right", "up", "down", "left"]
 colors = [red, orange, yellow, green, cyan, blue, white]
 
-def commit(direction=None):
+def commit_arr(led, direction=None):
     # This is the main function for
 
     # Array sent to Arduino:
@@ -73,7 +74,6 @@ def commit(direction=None):
             led[0][0], led[0][1], led[0][2],
         ]
 
-
     #print(values)
     serial_write(values)
 
@@ -96,9 +96,7 @@ def serial_write(values):
         sleep(0.02)
 
 def set_full_array(values, direction=None):
-    global led
-    led = values
-    commit(direction)
+    commit_arr(values, direction)
 
 # LED number + color[array]
 def set_led(x, i, send=True, direction=None):
@@ -107,7 +105,7 @@ def set_led(x, i, send=True, direction=None):
     led[x][1] = i[1]
     led[x][2] = i[2]
     if send:
-        commit(direction)
+        commit_arr(led, direction)
 
 def set_all(color=None):
     global black
@@ -119,7 +117,7 @@ def set_all(color=None):
         led[x][0] = color[0]
         led[x][1] = color[1]
         led[x][2] = color[2]
-    commit()
+    commit_arr(led, "right")
 
 old_random = None
 def get_random_color():
@@ -130,55 +128,13 @@ def get_random_color():
     old_random = new_random
     return colors[new_random]
 
-def slow_fade_led(i, new_value = []):
-    #print("Fading ", led[i], " to: ", new_value)
-    tests = [False, False, False]
-    while False in tests:
-        for x in range(3):
-            if abs(led[i][x] - new_value[x]) > 5:
-                if led[i][x] < new_value[x]:
-                    led[i][x] += slow
-                else:
-                    led[i][x] -= slow
-            else:
-                tests[x] = True
-
-        sleep(0.1)
-        commit()
-
-def fade_led(i, new_value, speed=5):
-    tests = [False, False, False]
-    for x in range(3):
-        if abs(led[i][x] - new_value[x]) > speed:
-            if led[i][x] < new_value[x]:
-                led[i][x] += speed
-            else:
-                led[i][x] -= speed
-        else:
-            tests[x] = True
-    if False in tests:
-        return False
-    else:
-        return True
-
-def slow_fade_all(color=False):
-    #set_all()
-    if not color:
-        color = get_random_color()
-
-    print("Fading to: ", color)
-    tests = [False, False, False, False, False, False, False]
-    while False in tests:
-        for x in range(7):
-            tests[x] = fade_led(x, color, 1)
-        sleep(0.01)
-        commit()
-    print("Done")
-
 def speed_sleep(delay, speed):
-    # print("Base delay: ", delay, "Speed: ", speed.value)
+    # Normal is delay / 1
     if type(speed) is int:
         sleep_delay = delay / ((speed * 10) / 100)
     else:
-        sleep_delay = delay / ((speed.value * 10) / 100)
+        if speed.value >= 10:
+            sleep_delay = delay / ((speed.value * (speed.value / 5 )) / 20 )
+        else:
+            sleep_delay = delay / ((speed.value * 10 ) / 100)
     sleep(sleep_delay)

@@ -3,11 +3,11 @@ import random
 
 
 def cop(rounds=None, direction=None, delay=0.5, color=None, speed=10):
-    rounds = 5
+    rounds = 4
     print("Cop: ", rounds, " rounds")
     counter = 0
     rounds_counter = 0
-    flash = 4
+    flash = 3
 
     led1 = [
         red, blue, blue,
@@ -45,7 +45,7 @@ def cop(rounds=None, direction=None, delay=0.5, color=None, speed=10):
         led2 = copy.deepcopy((goal2))
 
         rounds_counter += 1
-        
+
     print()
 
 def bounce(rounds=None, direction=None, delay=0.3, color=None, speed=10):
