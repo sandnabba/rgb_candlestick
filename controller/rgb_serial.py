@@ -16,7 +16,7 @@ functions = {
 }
 
 
-def run_random(speed):
+def run_random(speed=10):
     print("Starting a random program")
     print(functions.keys())
     program = random.choice(list(functions.keys()))
@@ -27,7 +27,7 @@ def run_random(speed):
 if __name__ == "__main__":
     print("Starting RBG serial")
 
-    run_random(speed)
+    run_random()
 
     # functions['cop']()
 
