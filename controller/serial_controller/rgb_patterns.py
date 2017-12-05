@@ -1,6 +1,53 @@
 from .rgb_support import *
 import random
 
+
+def cop(rounds=None, direction=None, delay=0.5, color=None, speed=10):
+    rounds = 5
+    print("Cop: ", rounds, " rounds")
+    counter = 0
+    rounds_counter = 0
+    flash = 4
+
+    led1 = [
+        red, blue, blue,
+        blue,
+        red, red, blue
+    ]
+    led2 = [
+        blue, red, red,
+        red,
+        blue, blue, red
+    ]
+
+    while rounds_counter < rounds:
+        while counter < flash:
+
+            set_full_array(led1, "right")
+            speed_sleep(delay, speed)
+
+            set_full_array(led2, "right")
+            speed_sleep(delay, speed)
+            counter += 1
+
+        counter = 0
+        goal1 = copy.deepcopy(led1)
+        goal1.append(goal1[0])
+        goal1.remove(goal1[0])
+        goal1.append(goal1[0])
+        goal1.remove(goal1[0])
+        goal2 = copy.deepcopy(led2)
+        goal2.append(goal2[0])
+        goal2.remove(goal2[0])
+        goal2.append(goal2[0])
+        goal2.remove(goal2[0])
+        led1 = copy.deepcopy((goal1))
+        led2 = copy.deepcopy((goal2))
+
+        rounds_counter += 1
+        
+    print()
+
 def bounce(rounds=None, direction=None, delay=0.3, color=None, speed=10):
     if not direction:
         direction = random.choice(directions)

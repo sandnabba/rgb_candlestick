@@ -28,3 +28,4 @@ The frame above would set the first LED to orange, and the second to green.
 ## Todo
 * Add upstart/systemd job
 * Add brightness level setting
+* GET endpoint in API for getting current settings

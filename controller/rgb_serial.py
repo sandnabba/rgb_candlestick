@@ -12,6 +12,7 @@ functions = {
     'wave': p.wave,
     'bounce': p.bounce,
     'rb': p.rb,
+    'cop': p.cop,
 }
 
 
@@ -29,8 +30,7 @@ if __name__ == "__main__":
     # We should pic a random function from the functions list
     # and add some random arguments as well
 
-    functions['wave']()
-    functions['fall']()
+    functions['cop']()
 
 def run(program, speed, direction=None):
     # print("Speed: ", speed.value)

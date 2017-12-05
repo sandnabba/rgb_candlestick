@@ -1880,6 +1880,8 @@ module.exports = {
       m("button", {onclick: function () {set_program("bounce")}}, "Bounce"),
       m("br"),
       m("button", {onclick: function () {set_program("wave")}}, "Wave"),
+      m("br"),
+      m("button", {onclick: function () {set_program("cop")}}, "Cop"),
       m("br"), m("br"),
       m("button", {onclick: function () {set_program("random")}}, "random"),
     ]}
