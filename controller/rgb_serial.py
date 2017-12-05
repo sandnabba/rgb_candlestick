@@ -26,8 +26,8 @@ def run_random(speed=10):
 
 if __name__ == "__main__":
     print("Starting RBG serial")
-
-    run_random()
+    while True:
+        run_random()
 
     # functions['cop']()
 
