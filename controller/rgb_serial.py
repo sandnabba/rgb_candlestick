@@ -27,10 +27,9 @@ def run_random(speed):
 if __name__ == "__main__":
     print("Starting RBG serial")
 
-    # We should pic a random function from the functions list
-    # and add some random arguments as well
+    run_random(speed)
 
-    functions['cop']()
+    # functions['cop']()
 
 def run(program, speed, direction=None):
     # print("Speed: ", speed.value)
