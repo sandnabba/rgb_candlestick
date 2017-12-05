@@ -24,3 +24,7 @@ Each frame starts with one preamble, a byte of 255 and ends with one byte of 254
 <img src="https://docs.google.com/drawings/d/1aIw0J8FX-caLTSyFx5ciofKwaJQVx-R4x_U5gbiJGIU/pub?w=1088&amp;h=238">
 
 The frame above would set the first LED to orange, and the second to green.
+
+## Todo
+* Add upstart/systemd job
+* Add brightness level setting

@@ -30,10 +30,6 @@ The controller software is written in Python, and is verified to work on both ge
 For more information, see the [controllers README](/controller/)
 
 ## Todo
-* Add upstart/systemd job
-* Add proper install script
-* Add REST-API
-* Add web frontend (Should be mobile-friendly)
 * Make the number of LEDs dynamic
   * Support for multiple candlesticks in the controller software.
   * Add a "super controller" that can command multiple candlesticks over network.
