@@ -1883,7 +1883,9 @@ module.exports = {
       m("br"),
       m("button", {onclick: function () {set_program("cop")}}, "Cop"),
       m("br"), m("br"),
-      m("button", {onclick: function () {set_program("random")}}, "random"),
+      m("button", {onclick: function () {set_program("random")}}, "Random"),
+      m("br"), m("br"),
+      m("button", {onclick: function () {set_program("stop")}}, "STOP"),
     ]}
 }
 
