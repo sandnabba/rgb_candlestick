@@ -1,10 +1,17 @@
 from random import randint
 from time import sleep
-from serial import Serial
+from serial import Serial, serialutil
 import copy
+import logging
 
 #ser = Serial('/dev/ttyACM0', 57600)  # open serial port
-ser = Serial('/dev/ttyUSB0', 57600)
+try:
+    ser = Serial('/dev/ttyUSB0', 57600)
+    serial_connected = True
+except serialutil.SerialException:
+    logging.critical("Could not open serial port, printing values to screen intead")
+    serial_connected = False
+    pass
 
 # Here is where we modify our local leds:
 led = [
@@ -74,25 +81,26 @@ def commit_arr(led, direction=None):
             led[0][0], led[0][1], led[0][2],
         ]
 
-    #print(values)
-    serial_write(values)
+    if serial_connected:
+        serial_write(values)
+    else:
+        print(values)
 
 def serial_write(values):
-    #ser.reset_input_buffer()
     while ser.in_waiting:
-    #if ser.in_waiting:
         response = ser.readline()
-        print(response)
+        print("Response: ", response)
         sleep(0.02)
+
+    # Needed for timing the arduino:
     values.insert(0, 255)
     values.append(254)
-    #print(values)
+
     ser.write(bytearray(values))
-    #print("Serial sent")
+
     while ser.in_waiting:
-    #if ser.in_waiting:
         response = ser.readline()
-        print(response)
+        print("Response: ", response)
         sleep(0.02)
 
 def set_full_array(values, direction=None):
