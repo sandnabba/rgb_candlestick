@@ -87,21 +87,20 @@ def commit_arr(led, direction=None):
         print(values)
 
 def serial_write(values):
-    #ser.reset_input_buffer()
     while ser.in_waiting:
-    #if ser.in_waiting:
         response = ser.readline()
-        print(response)
+        print("Response: ", response)
         sleep(0.02)
+
+    # Needed for timing the arduino:
     values.insert(0, 255)
     values.append(254)
-    #print(values)
+
     ser.write(bytearray(values))
-    #print("Serial sent")
+
     while ser.in_waiting:
-    #if ser.in_waiting:
         response = ser.readline()
-        print(response)
+        print("Response: ", response)
         sleep(0.02)
 
 def set_full_array(values, direction=None):

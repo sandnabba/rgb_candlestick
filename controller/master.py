@@ -7,7 +7,10 @@ import time
 import queue
 import signal
 import sys
+
 import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 # Local files:
 from http_server import server as http_server
