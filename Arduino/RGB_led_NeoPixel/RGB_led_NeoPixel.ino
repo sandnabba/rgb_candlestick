@@ -23,6 +23,7 @@ void setup() {
 const byte numBytes = 32;
 byte receivedBytes[numBytes];
 byte numReceived = 0;
+unsigned long last_ping = millis();
 
 boolean newData = false;
 
@@ -76,15 +77,28 @@ void showNewData() {
 }
 
 void set_led_new() {
-  strip.setPixelColor(0, receivedBytes[0], receivedBytes[1], receivedBytes[2]);
-  strip.setPixelColor(1, receivedBytes[3], receivedBytes[4], receivedBytes[5]);
-  strip.setPixelColor(2, receivedBytes[6], receivedBytes[7], receivedBytes[8]);
-  strip.setPixelColor(3, receivedBytes[9], receivedBytes[10], receivedBytes[11]);
-  strip.setPixelColor(4, receivedBytes[12], receivedBytes[13], receivedBytes[14]);
-  strip.setPixelColor(5, receivedBytes[15], receivedBytes[16], receivedBytes[17]);
-  strip.setPixelColor(6, receivedBytes[18], receivedBytes[19], receivedBytes[20]);
+  strip.setPixelColor(0, receivedBytes[1], receivedBytes[2], receivedBytes[0]);
+  strip.setPixelColor(1, receivedBytes[4], receivedBytes[5], receivedBytes[3]);
+  strip.setPixelColor(2, receivedBytes[7], receivedBytes[8], receivedBytes[6]);
+  strip.setPixelColor(3, receivedBytes[10], receivedBytes[11], receivedBytes[9]);
+  strip.setPixelColor(4, receivedBytes[13], receivedBytes[14], receivedBytes[12]);
+  strip.setPixelColor(5, receivedBytes[16], receivedBytes[17], receivedBytes[15]);
+  strip.setPixelColor(6, receivedBytes[19], receivedBytes[20], receivedBytes[18]);
   strip.show();
 }
+
+// Ping every 30 seconds just to tell python that we're alive
+void ping() {
+  unsigned long now = millis();
+  if (now > last_ping + 30000) {
+    unsigned long uptime = now / 1000;
+    String string = "Ping, Uptime: ";
+    string += uptime;
+    Serial.println(string);
+    last_ping = now;
+  }
+}
+
 
 void showGroupsOfBytes() {
     for (byte n = 0; n < numReceived; n++) {
@@ -98,6 +112,7 @@ void showGroupsOfBytes() {
 }
 
 void loop() {
+  ping();
   recvBytesWithStartEndMarkers();
   showNewData();
 }
