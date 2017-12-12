@@ -8,6 +8,10 @@ import queue
 import signal
 import sys
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+
 # Local files:
 from http_server import server as http_server
 import rgb_serial
@@ -19,7 +23,7 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 def httpProcess(messagebus):
-    print("Starting httpProcess")
+    logging.info("Starting HTTP process")
     http_server.run(messagebus)
 
 
@@ -33,7 +37,7 @@ def restart_candle(candle, program, speed, direction):
 
 def main():
     signal.signal(signal.SIGINT, signal_handler)
-    print("Starting Main Thread")
+    logging.info("Starting Mail Thread")
 
     # Defaults:
     speed = Value('i', 10)
@@ -45,7 +49,7 @@ def main():
     messagebus = Queue()
     server = Process(target=httpProcess, args=(messagebus,))
     server.start()
-    print("HTTP Server started")
+    logging.info("HTTP Server started")
 
 
     # Start a default program:
@@ -53,7 +57,7 @@ def main():
     candle.start()
 
     while True:
-        print("Waiting for message....")
+        logging.debug("Waiting for message from HTTP server...")
         data = messagebus.get()
         # print("Main recieved: ", data)
 
@@ -74,6 +78,7 @@ def main():
             if data['program'] == "stop":
                 print("Stopping")
                 candle.terminate()
+                candle.join()
             else:
                 # Recreate a new process:
                 candle = restart_candle(candle, program, speed, direction)
@@ -84,6 +89,6 @@ def main():
 
 
     server.join()
-    print("Exiting Main Thread")
+    logging.info("Exiting Main Thread")
 
 main()

@@ -25,11 +25,11 @@ def run_random(speed=10):
 
 if __name__ == "__main__":
     print("Starting RBG serial")
+    functions['cop']()
+    # functions['wave']()
     while True:
         run_random()
 
-    # functions['cop']()
-    # functions['wave']()
 
 def run(program, speed, direction=None):
     # print("Speed: ", speed.value)
