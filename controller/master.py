@@ -26,6 +26,7 @@ def httpProcess(messagebus):
 def restart_candle(candle, program, speed, direction):
     if candle.is_alive():
         candle.terminate()
+        candle.join()
     candle = Process(target=rgb_serial.run, args=(program, speed, direction))
     candle.start()
     return(candle)
@@ -74,6 +75,9 @@ def main():
             if data['program'] == "stop":
                 print("Stopping")
                 candle.terminate()
+                candle.join()
+                candle = Process(target=rgb_serial.blank)
+                candle.start()
             else:
                 # Recreate a new process:
                 candle = restart_candle(candle, program, speed, direction)

@@ -43,3 +43,7 @@ def run(program, speed, direction=None):
             run_random(speed)
         else:
             functions[program](speed=speed, direction=direction)
+
+def blank():
+    print("Starting blank function")
+    p.blank()

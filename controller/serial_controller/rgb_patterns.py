@@ -223,3 +223,10 @@ def rb(rounds=21, direction=None, delay=0.5, speed=10):
         counter += 1
         print(counter, "", end="", flush=True)
     print()
+
+def blank():
+    print("Setting all black")
+    # But read serial port:
+    while True:
+        set_all(black)
+        sleep(60)
