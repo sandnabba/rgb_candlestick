@@ -1,5 +1,11 @@
 # Controller software
 The controller is a simple python application sending an array of bytes (a frame) over a serial connection to the candlestick.
+It is composed of 3 components
+* A master process
+* The HTTP-server
+* A process that generates light patterns
+
+There is also a simple webapp written in Javascript that communicates with the API.
 
 ## Requirements
 
@@ -14,6 +20,22 @@ First install the necessary dependencies:
 
 To be able to run the program as user, add your self to the dialout group:  
 `sudo usermod -a -G dialout $USER`
+
+## HTTP API
+The HTTP has currently only one endpoint:
+`/api` that supports POST requests with JSON data with the following fields:
+program: Set the light pattern.
+* Program can also be set to "stop".
+speed: Set the speed of the light pattern.
+direction: Set direction of light pattern.
+
+### Examples
+Stopp the candlestick:
+`curl -v -H "Content-Type: application/json" -X POST -d '{"program": "stop"}' 127.0.0.1:5000/api`
+
+Start with random pattern:
+`curl -v -H "Content-Type: application/json" -X POST -d '{"program": "random"}' 127.0.0.1:5000/api`
+
 
 #### Issues
 If the rgb_candlestick fails with `AttributeError: 'Serial' object has no attribute 'in_waiting'`, you are running an older version of pyserial. Upgrade to a version > 3.0
