@@ -39,8 +39,11 @@ Start with random pattern:
 ### Start the candlestick in the morning and stop during night with cron:
 ```
 $ cat /etc/cron.d/candlestick
+Start candlestick at 05:00 in the morning:
 0 5 * * * root curl -v -H "Content-Type: application/json" -X POST -d '{"program": "random"}' 127.0.0.1:5000/api
-30 23 * * * root curl -v -H "Content-Type: application/json" -X POST -d '{"program": "stop"}' 127.0.0.1:5000/api
+
+# Stop Candlestick at 22:30 each night:
+30 22 * * * root curl -v -H "Content-Type: application/json" -X POST -d '{"program": "stop"}' 127.0.0.1:5000/api
 ```
 
 
