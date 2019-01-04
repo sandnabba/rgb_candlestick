@@ -25,7 +25,7 @@ To be able to run the program as user, add your self to the dialout group:
 The HTTP has currently only one endpoint:  
 */api:* Supports POST requests with JSON data with the following parameters:  
 `program`: Set the light pattern.  
-`speed: Set the speed of the light pattern.  
+`speed`: Set the speed of the light pattern.  
 `direction`: Set direction of light pattern.  
 * Program can also be set to "stop".  
 
