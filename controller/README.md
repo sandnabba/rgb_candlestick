@@ -22,19 +22,26 @@ To be able to run the program as user, add your self to the dialout group:
 `sudo usermod -a -G dialout $USER`
 
 ## HTTP API
-The HTTP has currently only one endpoint:
-`/api` that supports POST requests with JSON data with the following fields:
-program: Set the light pattern.  
-* Program can also be set to "stop".
-speed: Set the speed of the light pattern.  
-direction: Set direction of light pattern.  
+The HTTP has currently only one endpoint:  
+*/api:* Supports POST requests with JSON data with the following parameters:  
+`program`: Set the light pattern.  
+`speed: Set the speed of the light pattern.  
+`direction`: Set direction of light pattern.  
+* Program can also be set to "stop".  
 
 ### Examples
 Stopp the candlestick:  
-`curl -v -H "Content-Type: application/json" -X POST -d '{"program": "stop"}' 127.0.0.1:5000/api`
+`curl -H "Content-Type: application/json" -X POST -d '{"program": "stop"}' 127.0.0.1:5000/api`
 
 Start with random pattern:  
-`curl -v -H "Content-Type: application/json" -X POST -d '{"program": "random"}' 127.0.0.1:5000/api`
+`curl -H "Content-Type: application/json" -X POST -d '{"program": "random"}' 127.0.0.1:5000/api`
+
+### Start the candlestick in the morning and stop during night with cron:
+```
+$ cat /etc/cron.d/candlestick
+0 5 * * * root curl -v -H "Content-Type: application/json" -X POST -d '{"program": "random"}' 127.0.0.1:5000/api
+30 23 * * * root curl -v -H "Content-Type: application/json" -X POST -d '{"program": "stop"}' 127.0.0.1:5000/api
+```
 
 
 #### Issues
