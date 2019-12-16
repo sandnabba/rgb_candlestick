@@ -31,7 +31,7 @@ if __name__ == "__main__":
         run_random()
 
 
-def run(program, speed, direction=None):
+def run(program, speed, direction=None, rgb_color=None, update=None):
     # print("Speed: ", speed.value)
     # print("Direction: ", direction)
     # print("Program type: ", type(program))
@@ -41,6 +41,8 @@ def run(program, speed, direction=None):
     while True:
         if program == "random":
             run_random(speed)
+        if program == "rgb_color":
+            p.rgb_color(rgb_color=rgb_color, update=update)
         else:
             functions[program](speed=speed, direction=direction)
 

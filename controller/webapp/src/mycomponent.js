@@ -2,6 +2,8 @@
 var m = require("mithril")
 // import range from 'mithril-range'
 
+var ColorPickerComponent = require("./colorpicker")
+
 var range = require('mithril-range').default
 
 let myValue = 10
@@ -73,6 +75,10 @@ module.exports = {
       m("br"), m("br"),
       m("button", {onclick: function () {set_program("random")}}, "Random"),
       m("br"), m("br"),
-      m("button", {onclick: function () {set_program("stop")}}, "STOP"),
+      m("button", {onclick: function () {set_program("rgb_color")}}, "Coler Picker"),
+      m("br"), m("br"),
+      m(ColorPickerComponent),
+      m("br"), m("br"),
+      m("button", {onclick: function () {set_program("stop")}}, "STOP")
     ]}
 }

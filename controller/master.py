@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Global modules:
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process, Queue, Value, Array, Event
 import time
 import queue
 import signal
@@ -16,6 +16,8 @@ logging.basicConfig(level=logging.DEBUG)
 from http_server import server as http_server
 import rgb_serial
 
+update = Event()
+
 #
 def signal_handler(signal, frame):
     print('You pressed Ctrl+C!')
@@ -27,11 +29,12 @@ def httpProcess(messagebus):
     http_server.run(messagebus)
 
 
-def restart_candle(candle, program, speed, direction):
+def restart_candle(candle, program, speed, direction, rgb_color=None):
+    global update
     if candle.is_alive():
         candle.terminate()
         candle.join()
-    candle = Process(target=rgb_serial.run, args=(program, speed, direction))
+    candle = Process(target=rgb_serial.run, args=(program, speed, direction, rgb_color, update))
     candle.start()
     return(candle)
 
@@ -42,6 +45,7 @@ def main():
 
     # Defaults:
     speed = Value('i', 10)
+    rgb_color = Array('i', [250, 0, 0])
     # direction = "left"
     direction = None
     program = "random"
@@ -84,12 +88,15 @@ def main():
                 candle.start()
             else:
                 # Recreate a new process:
-                candle = restart_candle(candle, program, speed, direction)
+                candle = restart_candle(candle, program, speed, direction, rgb_color)
 
         if 'speed' in data:
             # print("Setting speed to: ", data['speed'])
             speed.value = int(data['speed'])
 
+        if 'color' in data:
+            rgb_color = Array('i', [ data['color']["r"], data['color']["g"], data['color']["b"] ])
+            update.set()
 
     server.join()
     logging.info("Exiting Main Thread")

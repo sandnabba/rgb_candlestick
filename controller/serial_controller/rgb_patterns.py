@@ -230,3 +230,14 @@ def blank():
     while True:
         set_all(black)
         sleep(60)
+
+def rgb_color(rgb_color, update):
+    print("Set a static set of colors")
+    arr = [rgb_color[0], rgb_color[1], rgb_color[2]]
+    set_all(color=arr)
+    while True:
+        if update.is_set():
+            arr = [rgb_color[0], rgb_color[1], rgb_color[2]]
+            set_all(color=arr)
+            update.clear()
+        sleep(0.01)
