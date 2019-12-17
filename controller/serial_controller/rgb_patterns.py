@@ -236,8 +236,7 @@ def rgb_color(rgb_color, update):
     arr = [rgb_color[0], rgb_color[1], rgb_color[2]]
     set_all(color=arr)
     while True:
-        if update.is_set():
+        if update.wait(timeout=0.1):
             arr = [rgb_color[0], rgb_color[1], rgb_color[2]]
             set_all(color=arr)
             update.clear()
-        sleep(0.01)

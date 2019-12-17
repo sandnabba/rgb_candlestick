@@ -64,7 +64,7 @@ def main():
     while True:
         logging.debug("Waiting for message from HTTP server...")
         data = messagebus.get()
-        # print("Main recieved: ", data)
+        print("Main recieved: ", data)
 
         if 'direction' in data:
             if data['direction'] == "left":
@@ -95,8 +95,12 @@ def main():
             speed.value = int(data['speed'])
 
         if 'color' in data:
+            global update
             rgb_color = Array('i', [ data['color']["r"], data['color']["g"], data['color']["b"] ])
-            update.set()
+            if not update.is_set():
+                update.set()
+            print("Leaving color func")
+
 
     server.join()
     logging.info("Exiting Main Thread")

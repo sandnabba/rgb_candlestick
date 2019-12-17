@@ -16,7 +16,6 @@ functions = {
     'rb2': p.rb, # Extra rainbow, just because it's beautiful :)
 }
 
-
 def run_random(speed=10):
     program = random.choice(list(functions.keys()))
     print("Random program, Starting: ", program)
@@ -30,7 +29,6 @@ if __name__ == "__main__":
     while True:
         run_random()
 
-
 def run(program, speed, direction=None, rgb_color=None, update=None):
     # print("Speed: ", speed.value)
     # print("Direction: ", direction)
@@ -41,7 +39,7 @@ def run(program, speed, direction=None, rgb_color=None, update=None):
     while True:
         if program == "random":
             run_random(speed)
-        if program == "rgb_color":
+        elif program == "rgb_color":
             p.rgb_color(rgb_color=rgb_color, update=update)
         else:
             functions[program](speed=speed, direction=direction)
