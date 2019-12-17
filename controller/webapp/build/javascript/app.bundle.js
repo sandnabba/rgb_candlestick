@@ -1814,13 +1814,17 @@ m.mount(document.body, MyComponent)
 var m = __webpack_require__(0)
 // import range from 'mithril-range'
 
-var range = __webpack_require__(7).default
+var ColorPickerComponent = __webpack_require__(7)
+
+var range = __webpack_require__(8).default
 
 let myValue = 10
 
+var active_program = ""
 
 function set_program(value) {
   console.log("Program is:", value)
+  active_program = value
   m.request({
     method: "POST",
     url: "/api",
@@ -1885,13 +1889,55 @@ module.exports = {
       m("br"), m("br"),
       m("button", {onclick: function () {set_program("random")}}, "Random"),
       m("br"), m("br"),
-      m("button", {onclick: function () {set_program("stop")}}, "STOP"),
+      m(ColorPickerComponent),
+      m("br"), m("br"),
+      m("button", {onclick: function () {set_program("stop")}}, "STOP")
     ]}
 }
 
 
 /***/ }),
 /* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var m = __webpack_require__(0)
+
+// var iro = require('@jaames/iro');
+
+var last_time = Date.now()
+
+function set_color(value) {
+  current_time = Date.now()
+  // console.log("Color is:", value.rgb)
+  if ((current_time - last_time) > 100) {
+    m.request({
+      method: "POST",
+      url: "/api/color",
+      data: {
+        "color": value.rgb,
+      }
+    })
+    last_time = current_time
+  } else {
+    console.log("Wait a few more milli-seconds")
+  }
+}
+
+function init_picker(vnode) {
+  var colorPicker2 = new iro.ColorPicker("#test")
+  colorPicker2.on("color:change", set_color)
+}
+
+module.exports = {
+  view: function(vnode) {return [
+    m("div", {id: "test"}),
+    m("script", {src: "https://cdn.jsdelivr.net/npm/@jaames/iro/dist/iro.min.js", onload: function() {init_picker(vnode.attrs.pos)}})
+  ]}
+}
+
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

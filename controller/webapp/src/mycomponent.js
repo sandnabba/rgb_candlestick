@@ -2,13 +2,17 @@
 var m = require("mithril")
 // import range from 'mithril-range'
 
+var ColorPickerComponent = require("./colorpicker")
+
 var range = require('mithril-range').default
 
 let myValue = 10
 
+var active_program = ""
 
 function set_program(value) {
   console.log("Program is:", value)
+  active_program = value
   m.request({
     method: "POST",
     url: "/api",
@@ -73,6 +77,8 @@ module.exports = {
       m("br"), m("br"),
       m("button", {onclick: function () {set_program("random")}}, "Random"),
       m("br"), m("br"),
-      m("button", {onclick: function () {set_program("stop")}}, "STOP"),
+      m(ColorPickerComponent),
+      m("br"), m("br"),
+      m("button", {onclick: function () {set_program("stop")}}, "STOP")
     ]}
 }

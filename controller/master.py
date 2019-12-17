@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Global modules:
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process, Queue, Value, Array, Event
 import time
 import queue
 import signal
@@ -11,12 +11,11 @@ import sys
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-
 # Local files:
 from http_server import server as http_server
 import rgb_serial
 
-#
+# Functions:
 def signal_handler(signal, frame):
     print('You pressed Ctrl+C!')
     # self.server.terminate()
@@ -26,7 +25,6 @@ def httpProcess(messagebus):
     logging.info("Starting HTTP process")
     http_server.run(messagebus)
 
-
 def restart_candle(candle, program, speed, direction):
     if candle.is_alive():
         candle.terminate()
@@ -35,14 +33,13 @@ def restart_candle(candle, program, speed, direction):
     candle.start()
     return(candle)
 
-
 def main():
     signal.signal(signal.SIGINT, signal_handler)
     logging.info("Starting Mail Thread")
 
     # Defaults:
     speed = Value('i', 10)
-    # direction = "left"
+    rgb_color = Array('i', [250, 250, 250])
     direction = None
     program = "random"
 
@@ -60,7 +57,7 @@ def main():
     while True:
         logging.debug("Waiting for message from HTTP server...")
         data = messagebus.get()
-        # print("Main recieved: ", data)
+        print("Main recieved: ", data)
 
         if 'direction' in data:
             if data['direction'] == "left":
@@ -89,6 +86,21 @@ def main():
         if 'speed' in data:
             # print("Setting speed to: ", data['speed'])
             speed.value = int(data['speed'])
+
+        if 'color' in data:
+            rgb_color[0] = data['color']["r"]
+            rgb_color[1] = data['color']["g"]
+            rgb_color[2] = data['color']["b"]
+            if program == "rgb_color":
+                # Do net set the Event() function unless something is listening
+                # on the event, or the process will hit a deadlock here.
+                update.set()
+            else:
+                candle.terminate()
+                candle.join()
+                update = Event()
+                candle = Process(target=rgb_serial.color, args=(rgb_color, update))
+                candle.start()
 
 
     server.join()
