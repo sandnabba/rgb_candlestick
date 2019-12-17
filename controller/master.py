@@ -26,12 +26,11 @@ def httpProcess(messagebus):
     logging.info("Starting HTTP process")
     http_server.run(messagebus)
 
-
-def restart_candle(candle, program, speed, direction, rgb_color=None, update=None):
+def restart_candle(candle, program, speed, direction):
     if candle.is_alive():
         candle.terminate()
         candle.join()
-    candle = Process(target=rgb_serial.run, args=(program, speed, direction, rgb_color, update))
+    candle = Process(target=rgb_serial.run, args=(program, speed, direction))
     candle.start()
     return(candle)
 
@@ -42,9 +41,7 @@ def main():
 
     # Defaults:
     speed = Value('i', 10)
-    rgb_color = Array('i', [250, 0, 0])
-    update = Event()
-    # direction = "left"
+    rgb_color = Array('i', [250, 250, 250])
     direction = None
     program = "random"
 
@@ -84,21 +81,29 @@ def main():
                 candle.join()
                 candle = Process(target=rgb_serial.blank)
                 candle.start()
+            elif data['program'] == "rgb_color":
+                print("Stopping for RGB")
+                candle.terminate()
+                candle.join()
+                update = Event()
+                candle = Process(target=rgb_serial.color, args=(rgb_color, update))
+                candle.start()
             else:
                 # Recreate a new process:
-                candle = restart_candle(candle, program, speed, direction, rgb_color, update)
+                candle = restart_candle(candle, program, speed, direction)
 
         if 'speed' in data:
             # print("Setting speed to: ", data['speed'])
             speed.value = int(data['speed'])
 
         if 'color' in data:
-            update = Event()
-            rgb_color = Array('i', [ data['color']["r"], data['color']["g"], data['color']["b"] ])
-            print("Set update")
+            if program != "rgb_color":
+                break
+            rgb_color[0] = data['color']["r"]
+            rgb_color[1] = data['color']["g"]
+            rgb_color[2] = data['color']["b"]
             update.set()
             print("Leaving color func")
-
 
     server.join()
     logging.info("Exiting Main Thread")

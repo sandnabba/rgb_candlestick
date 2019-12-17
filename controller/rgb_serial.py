@@ -39,11 +39,13 @@ def run(program, speed, direction=None, rgb_color=None, update=None):
     while True:
         if program == "random":
             run_random(speed)
-        elif program == "rgb_color":
-            p.rgb_color(rgb_color=rgb_color, update=update)
         else:
             functions[program](speed=speed, direction=direction)
 
 def blank():
     print("Starting blank function")
     p.blank()
+
+def color(rgb_color, update):
+    print("Starting RGB color function")
+    p.rgb_color(rgb_color, update)
