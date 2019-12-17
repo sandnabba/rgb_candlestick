@@ -3,7 +3,7 @@ var m = require("mithril")
 // var iro = require('@jaames/iro');
 
 function set_color(value) {
-  console.log("Color is:", value.rgb)
+  // console.log("Color is:", value.rgb)
   m.request({
     method: "POST",
     url: "/api/color",
@@ -14,7 +14,6 @@ function set_color(value) {
 }
 
 function init_picker(vnode) {
-  console.log("Hello")
   var colorPicker2 = new iro.ColorPicker("#test")
   colorPicker2.on("color:change", set_color)
 }

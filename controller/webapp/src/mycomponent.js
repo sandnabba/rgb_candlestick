@@ -8,9 +8,11 @@ var range = require('mithril-range').default
 
 let myValue = 10
 
+var active_program = ""
 
 function set_program(value) {
   console.log("Program is:", value)
+  active_program = value
   m.request({
     method: "POST",
     url: "/api",
@@ -74,8 +76,6 @@ module.exports = {
       m("button", {onclick: function () {set_program("cop")}}, "Cop"),
       m("br"), m("br"),
       m("button", {onclick: function () {set_program("random")}}, "Random"),
-      m("br"), m("br"),
-      m("button", {onclick: function () {set_program("rgb_color")}}, "Coler Picker"),
       m("br"), m("br"),
       m(ColorPickerComponent),
       m("br"), m("br"),

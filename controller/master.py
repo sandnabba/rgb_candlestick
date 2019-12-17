@@ -11,12 +11,11 @@ import sys
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-
 # Local files:
 from http_server import server as http_server
 import rgb_serial
 
-#
+# Functions:
 def signal_handler(signal, frame):
     print('You pressed Ctrl+C!')
     # self.server.terminate()
@@ -33,7 +32,6 @@ def restart_candle(candle, program, speed, direction):
     candle = Process(target=rgb_serial.run, args=(program, speed, direction))
     candle.start()
     return(candle)
-
 
 def main():
     signal.signal(signal.SIGINT, signal_handler)
@@ -81,13 +79,6 @@ def main():
                 candle.join()
                 candle = Process(target=rgb_serial.blank)
                 candle.start()
-            elif data['program'] == "rgb_color":
-                print("Stopping for RGB")
-                candle.terminate()
-                candle.join()
-                update = Event()
-                candle = Process(target=rgb_serial.color, args=(rgb_color, update))
-                candle.start()
             else:
                 # Recreate a new process:
                 candle = restart_candle(candle, program, speed, direction)
@@ -97,13 +88,20 @@ def main():
             speed.value = int(data['speed'])
 
         if 'color' in data:
-            if program != "rgb_color":
-                break
             rgb_color[0] = data['color']["r"]
             rgb_color[1] = data['color']["g"]
             rgb_color[2] = data['color']["b"]
-            update.set()
-            print("Leaving color func")
+            if program == "rgb_color":
+                # Do net set the Event() function unless something is listening
+                # on the event, or the process will hit a deadlock here.
+                update.set()
+            else:
+                candle.terminate()
+                candle.join()
+                update = Event()
+                candle = Process(target=rgb_serial.color, args=(rgb_color, update))
+                candle.start()
+
 
     server.join()
     logging.info("Exiting Main Thread")

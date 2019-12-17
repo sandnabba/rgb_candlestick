@@ -1820,9 +1820,11 @@ var range = __webpack_require__(8).default
 
 let myValue = 10
 
+var active_program = ""
 
 function set_program(value) {
   console.log("Program is:", value)
+  active_program = value
   m.request({
     method: "POST",
     url: "/api",
@@ -1887,8 +1889,6 @@ module.exports = {
       m("br"), m("br"),
       m("button", {onclick: function () {set_program("random")}}, "Random"),
       m("br"), m("br"),
-      m("button", {onclick: function () {set_program("rgb_color")}}, "Coler Picker"),
-      m("br"), m("br"),
       m(ColorPickerComponent),
       m("br"), m("br"),
       m("button", {onclick: function () {set_program("stop")}}, "STOP")
@@ -1905,7 +1905,7 @@ var m = __webpack_require__(0)
 // var iro = require('@jaames/iro');
 
 function set_color(value) {
-  console.log("Color is:", value.rgb)
+  // console.log("Color is:", value.rgb)
   m.request({
     method: "POST",
     url: "/api/color",
@@ -1916,7 +1916,6 @@ function set_color(value) {
 }
 
 function init_picker(vnode) {
-  console.log("Hello")
   var colorPicker2 = new iro.ColorPicker("#test")
   colorPicker2.on("color:change", set_color)
 }
