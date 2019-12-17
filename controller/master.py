@@ -16,8 +16,6 @@ logging.basicConfig(level=logging.DEBUG)
 from http_server import server as http_server
 import rgb_serial
 
-update = Event()
-
 #
 def signal_handler(signal, frame):
     print('You pressed Ctrl+C!')
@@ -29,8 +27,7 @@ def httpProcess(messagebus):
     http_server.run(messagebus)
 
 
-def restart_candle(candle, program, speed, direction, rgb_color=None):
-    global update
+def restart_candle(candle, program, speed, direction, rgb_color=None, update=None):
     if candle.is_alive():
         candle.terminate()
         candle.join()
@@ -46,6 +43,7 @@ def main():
     # Defaults:
     speed = Value('i', 10)
     rgb_color = Array('i', [250, 0, 0])
+    update = Event()
     # direction = "left"
     direction = None
     program = "random"
@@ -88,17 +86,17 @@ def main():
                 candle.start()
             else:
                 # Recreate a new process:
-                candle = restart_candle(candle, program, speed, direction, rgb_color)
+                candle = restart_candle(candle, program, speed, direction, rgb_color, update)
 
         if 'speed' in data:
             # print("Setting speed to: ", data['speed'])
             speed.value = int(data['speed'])
 
         if 'color' in data:
-            global update
+            update = Event()
             rgb_color = Array('i', [ data['color']["r"], data['color']["g"], data['color']["b"] ])
-            if not update.is_set():
-                update.set()
+            print("Set update")
+            update.set()
             print("Leaving color func")
 
 
