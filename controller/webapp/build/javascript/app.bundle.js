@@ -1909,7 +1909,7 @@ var last_time = Date.now()
 function set_color(value) {
   current_time = Date.now()
   // console.log("Color is:", value.rgb)
-  if ((current_time - last_time) > 75) {
+  if ((current_time - last_time) > 100) {
     m.request({
       method: "POST",
       url: "/api/color",
