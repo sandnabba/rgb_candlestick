@@ -30,7 +30,9 @@ The controller software is written in Python, and is verified to work on both ge
 For more information, see the [controllers README](/controller/)
 
 ## Todo
+* Add a virtual env for the controller, so that we don't need to install system packages.
 * Make the number of LEDs dynamic
   * Support for multiple candlesticks in the controller software.
   * Add a "super controller" that can command multiple candlesticks over network.
 * Implement basic light patterns in the Arduino code so that it can run without a dedicated controller.
+* Implement a GET function in the API so that the webapp can get the current state of the candlestick.
