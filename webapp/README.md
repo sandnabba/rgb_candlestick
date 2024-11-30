@@ -5,6 +5,10 @@ It's a `React` application written in `TypeScript`, created with `Vite` and `Nod
 
 WARNING: I'm absolutely not a frontend developer. 90% of the code here is AI generated and I really don't know what I'm doing!
 
+## Preview
+
+<img src="./preview.png" width="500">
+
 ## Development environment
 
 First you must have a working installation of Node.JS. Install it in your preferred way:
