@@ -44,7 +44,7 @@ function App() {
           }
           style={buttonStyle}
         >
-          Waterfall
+          Falling
         </button>
         <button
           onClick={() =>
