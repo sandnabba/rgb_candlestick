@@ -1,0 +1,71 @@
+---
+# Super hacky play to install on a Raspberry Pi.
+# Uses system packages and overwrites the Nginx default site. But it works!
+# Usage:
+# ansible-playbook -i "{hostname}," -u {username} --become ansible_playbook.yaml
+- name: Deploy candlestick controller on a Raspberry Pi
+  hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: Install APT packages
+      apt:
+        update_cache: yes
+        name:
+          - nginx
+          - python3-flask
+          - python3-serial
+        state: present
+
+    - name: Create /opt/rgb_candlestick
+      file:
+        path: /opt/rgb_candlestick/
+        state: directory
+        mode: '0755'
+
+####################
+# Install controller
+####################
+
+    - name: Install controller
+      synchronize:
+        src: controller/src/
+        dest: /opt/rgb_candlestick/controller
+        recursive: yes
+        rsync_opts: ["--exclude=.venv"]
+
+    - name: Ensure systemd unit file is present
+      copy:
+        src: controller/rgb-candlestick.service
+        dest: /etc/systemd/system/rgb-candlestick.service
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload systemd to apply changes
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start controller
+      systemd:
+        name: rgb-candlestick
+        enabled: true
+        state: started
+
+#################
+# Install Web app
+#################
+    - name: Install Web App
+      copy:
+        src: webapp/rgb_app/dist/
+        dest: /opt/rgb_candlestick/webapp
+
+    - name: Install Nginx config
+      copy:
+        src: webapp/nginx_site.conf
+        dest: /etc/nginx/sites-enabled/default
+
+    - name: Reload Nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
