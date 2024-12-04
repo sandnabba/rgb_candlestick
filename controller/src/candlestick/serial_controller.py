@@ -3,12 +3,14 @@ import logging
 
 class SerialController:
     def __init__(self):
-        print("Initiating Serial controller")
-        self.led = [[0, 0, 0] for _ in range(7)]
         self.logger = logging.getLogger(__name__)
+        self.logger.debug("Initiating Serial controller")
+        self.serial_port = "/dev/ttyUSB0"
+        self.led = [[0, 0, 0] for _ in range(7)]
         try:
-            self.ser = Serial('/dev/ttyUSB0', 57600)
+            self.ser = Serial(self.serial_port, 57600)
             self.serial_connected = True
+            self.logger.debug("Connected to serial port: %s", self.serial_port)
         except serialutil.SerialException:
             self.logger.critical("Could not open serial port, printing values to screen instead")
             self.serial_connected = False

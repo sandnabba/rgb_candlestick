@@ -23,7 +23,7 @@ def run_random(controller, speed=10):
     logger.info("Random program, Starting: %s", program)
     functions[program](controller, speed=speed)
 
-def run(program, speed, direction=None, rgb_color=None, update=None):
+def run_program(program, speed, direction=None, rgb_color=None, update=None):
     '''This function is called when the script is run externally'''
     controller = SerialController()
     # print("Speed: ", speed.value)
@@ -42,9 +42,10 @@ def blank():
     logger.info("Starting blank function")
     p.blank()
 
-def color(rgb_color, update):
-    logger.info("Starting RGB color function")
-    p.rgb_color(rgb_color, update)
+def set_color(controller, rgb_color):
+    #controller = SerialController()
+    logger.info("Setting color to static value from API")
+    set_color_from_api(controller, rgb_color)
 
 if __name__ == "__main__":
     logger.info("Starting RBG serial")

@@ -264,13 +264,15 @@ def blank():
         set_all(black)
         sleep(60)
 
-# Not used?
-def rgb_color(rgb_color, update):
-    logger.debug("Set a static set of colors")
+def set_color_from_api(controller, rgb_color):
+    '''
+    This implementation uses a multiprocessing.Array and a multiprocessing.Event
+    as callbacks. This approach is necessary because the current SerialController
+    is instantiated with each HTTP API call.
+
+    If we refactor main.py to initialize the serial port during the main startup,
+    we could simplify this function to operate as a standard pattern.
+    '''
+    logger.debug("Set a static set of colors: %s", rgb_color)
     arr = [rgb_color[0], rgb_color[1], rgb_color[2]]
-    set_all(color=arr)
-    while True:
-        if update.wait():
-            arr = [rgb_color[0], rgb_color[1], rgb_color[2]]
-            set_all(color=arr)
-            update.clear()
+    controller.set_all(color=arr)
