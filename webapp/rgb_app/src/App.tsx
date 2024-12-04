@@ -3,8 +3,8 @@ import { handleButtonClick, handleSliderChange, handleColorChange } from './http
 
 function App() {
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Candlestick Controller v2</h1>
+    <div style={{ textAlign: "center", marginTop: "25px" }}>
+      <h1>Sandnabba Candlestick Controller - v2024</h1>
       <div>
         <button
           onClick={() =>
@@ -46,6 +46,16 @@ function App() {
         >
           Police
         </button>
+        <button
+          onClick={() =>
+            handleButtonClick({
+              program: "wave",
+            })
+          }
+          style={buttonStyle}
+        >
+          Wave
+        </button>
         {/* Slider */}
         <div style={{ marginTop: "30px" }}>
           <input
@@ -76,6 +86,16 @@ function App() {
         <button
           onClick={() =>
             handleButtonClick({
+              direction: "up",
+            })
+          }
+          style={buttonStyle}
+        >
+          Up
+        </button>
+        <button
+          onClick={() =>
+            handleButtonClick({
               direction: "left",
             })
           }
@@ -92,6 +112,16 @@ function App() {
           style={buttonStyle}
         >
           Right
+        </button>
+        <button
+          onClick={() =>
+            handleButtonClick({
+              direction: "down",
+            })
+          }
+          style={buttonStyle}
+        >
+          Down
         </button>
         {/* Reset Button */}
         <div style={{ marginTop: "20px" }}>

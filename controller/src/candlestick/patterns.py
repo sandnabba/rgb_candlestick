@@ -239,6 +239,7 @@ def debug(direction=None):
 
 
 def rb(controller, rounds=21, direction=None, delay=0.5, speed=10):
+    # Rainbow
     if not direction:
         direction = random.choice(directions)
     logger.info("RainBow, direction: %s", direction)
@@ -266,12 +267,8 @@ def blank():
 
 def set_color_from_api(controller, rgb_color):
     '''
-    This implementation uses a multiprocessing.Array and a multiprocessing.Event
-    as callbacks. This approach is necessary because the current SerialController
-    is instantiated with each HTTP API call.
-
-    If we refactor main.py to initialize the serial port during the main startup,
-    we could simplify this function to operate as a standard pattern.
+    Special hacky function due to how it was implemented before, using a multiprocessing.Event()
+    and a multiprocessing.Queue(). Today it could probably be implemented as a regular function.
     '''
     logger.debug("Set a static set of colors: %s", rgb_color)
     arr = [rgb_color[0], rgb_color[1], rgb_color[2]]

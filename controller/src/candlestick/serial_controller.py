@@ -16,21 +16,37 @@ class SerialController:
             self.serial_connected = False
 
     def commit_arr(self, direction=None):
-        values = self.get_values(direction)
+        #self.logger.debug("Commiting array, direction: %s", direction)
+        # Array sent to Arduino:
+        if not direction or direction == "right":
+            values = [
+                self.led[i][j]
+                for i in range(7)  # Rows 0 through 6
+                for j in range(3)  # Columns 0 through 2
+            ]
+        elif direction == "left":
+            values = [
+                self.led[i][j]
+                for i in range(6, -1, -1)  # Rows 6 through 0 (reversed)
+                for j in range(3)          # Columns 0 through 2
+            ]
+        elif direction == "down":
+            values = [
+                self.led[i][j]
+                for i in [3, 2, 1, 0, 1, 2, 3]
+                for j in range(3)
+            ]
+        elif direction == "up":
+            values = [
+                self.led[i][j]
+                for i in [0, 1, 2, 3, 2, 1, 0]
+                for j in range(3)
+            ]
+
         if self.serial_connected:
             self.serial_write(values)
         else:
             self.logger.debug(values)
-
-    def get_values(self, direction):
-        if not direction or direction == "right":
-            return [self.led[i][j] for i in range(7) for j in range(3)]
-        elif direction == "left":
-            return [self.led[6-i][j] for i in range(7) for j in range(3)]
-        elif direction == "up":
-            return [self.led[(i%4)][j] for i in range(7) for j in range(3)]
-        elif direction == "down":
-            return [self.led[i//4][j] for i in range(7) for j in range(3)]
 
     def serial_write(self, values):
         while self.ser.in_waiting:
@@ -50,6 +66,7 @@ class SerialController:
         self.commit_arr(direction)
 
     def set_led(self, x, color, send=True, direction=None):
+        self.logger.debug("Setting led %s, direction: %s", x, direction)
         self.led[x] = color
         if send:
             self.commit_arr(direction)

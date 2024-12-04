@@ -31,6 +31,8 @@ If the rgb_candlestick fails with `AttributeError: 'Serial' object has no attrib
 
 ## API
 
+**WARNING:** The API totally lacks error handling or any kind of sanity check of the data.
+
 The API is available at HTTP port `5000` on the `/api` URL.
 It currently only supports `POST` requests with a JSON body, supporting the following parameters:
 
@@ -44,8 +46,6 @@ It currently only supports `POST` requests with a JSON body, supporting the foll
 ```
 curl -X POST -H "Content-Type: application/json" -d '{"program": "rb"}' http://localhost:5000/api
 ```
-
-**NOTE:** The API totally lacks error handling or any kind of sanity check of the data.
 
 ## The candlestick frame format
 Each light is an RGB diode, requiring 3 bytes: Red, Green and Blue.
