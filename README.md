@@ -29,6 +29,16 @@ The controller software is written in Python, and is verified to work on both ge
 
 For more information, see the [controllers README](/controller/)
 
+## Quick and Dirty Installation Using Ansible
+
+There is an Ansible [playbook](./ansible_playbook.yaml) available that can be used to install both the web app, controller, Nginx configuration and systemd-unit on a Rasperry Pi.
+
+```sh
+ansible-playbook -i "{hostname}," -u {username} --become ansible_playbook.yaml
+```
+
+Runs as root, uses system packages etc... Not pretty, but it works!
+
 ## Todo / Improvement ideas
 
 Everything is terribly hacky. Remember that this is a weekend project setup a some week before Christmas, eventually with small improvements "next year".
