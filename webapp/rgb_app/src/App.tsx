@@ -14,17 +14,7 @@ function App() {
           }
           style={buttonStyle}
         >
-          Rainbow 1
-        </button>
-        <button
-          onClick={() =>
-            handleButtonClick({
-              program: "rb2",
-            })
-          }
-          style={buttonStyle}
-        >
-          Rainbow 2
+          Rainbow
         </button>
         <button
           onClick={() =>
@@ -109,13 +99,20 @@ function App() {
             onClick={() =>
               handleButtonClick({
                 program: "random",
-                speed: "15"
+                speed: "10"
               })
             }
             style={resetButtonStyle}
           >
             Reset
           </button>
+        </div>
+        {/* Info Paragraph */}
+        <div style={{ marginTop: "50px" }}>
+          <p style={{ fontSize: "18px", color: "#666" }}>
+            For documentation, build instruction and more information, please see:<br />
+            <a href='https://github.com/sandnabba/rgb_candlestick'>https://github.com/sandnabba/rgb_candlestick</a>
+          </p>
         </div>
       </div>
     </div>
