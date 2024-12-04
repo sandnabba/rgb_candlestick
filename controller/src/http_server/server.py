@@ -19,4 +19,4 @@ def run(messagebus):
 
         return "", 204
 
-    app.run()
+    app.run(host='0.0.0.0')
