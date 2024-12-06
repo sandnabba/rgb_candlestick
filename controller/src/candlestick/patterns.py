@@ -39,10 +39,69 @@ def speed_sleep(delay, speed):
             sleep_delay = delay / ((speed.value * (speed.value / 5 )) / 20 )
         else:
             sleep_delay = delay / ((speed.value * 10 ) / 100)
+    logger.debug("Sleeping: %s", sleep_delay)
     sleep(sleep_delay)
+
+def diff_set_array(controller, now, goal, direction=None, speed=10):
+    """
+    Gradually transitions an array of RGB values from `now` to `goal`.
+
+    Args:
+        controller: The object responsible for setting the RGB values.
+        now (list): Current RGB values, a 7x3 array of integers.
+        goal (list): Target RGB values, a 7x3 array of integers.
+        direction: Optional parameter for the controller to specify direction.
+        speed (int): Controls the transition speed (higher = faster).
+
+    Returns:
+        list: The final state of the RGB values (matches `goal`).
+    """
+    helper = copy.deepcopy(now)
+    goal = copy.deepcopy(goal)
+    steps = 50
+    delay = 0.2 / speed.value
+
+    for step in range(steps, 0, -1):
+        for x in range(7):
+            for i in range(3):
+                a = float(helper[x][i])
+                b = float(goal[x][i])
+                difference = abs(a - b)
+
+                if difference <= 2:
+                    helper[x][i] = b
+                else:
+                    adjustment = difference / step
+                    helper[x][i] = a + adjustment if a < b else a - adjustment
+
+                helper[x][i] = int(helper[x][i])
+
+        controller.set_full_array(helper, direction)
+        sleep(delay)
+
+    return helper
 
 
 ############### Patterns below here #################
+
+def debug(direction=None):
+    # while 1:
+    #     #led = [red, orange, yellow, green, cyan, blue, white]
+    #     led = [red, green, yellow, green, cyan, green, red]
+    #     controller.set_full_array(led, direction)
+    #     sleep(0.5)
+    # sleep(5)
+    led = [red, red, red, red, red, red, red]
+    sleep(0.5)
+    controller.set_full_array(led, direction)
+    led = [green, green, green, green, green, green, green]
+    sleep(0.5)
+    controller.set_full_array(led, direction)
+    led = [blue, blue, blue, blue, blue, blue, blue]
+    sleep(0.5)
+    controller.set_full_array(led, direction)
+
+
 def cop(controller, rounds=4, direction=None, delay=0.5, color=None, speed=10):
     logger.info("Starting cop, %s rounds", rounds)
     counter = 0
@@ -118,8 +177,9 @@ def bounce(controller, rounds=None, direction=None, delay=0.3, color=None, speed
         counter += 1
         logger.debug("%s", counter)
 
-# Not used?
-def random_studs(controller, delay=0.5, speed=1):
+# TODO, not implemented.
+# Bounce, but each LED will be of a random color
+def bounce_random(controller, delay=0.5, speed=1):
     set_all()
     for x in range(6):
         controller.set_led(x, get_random_color())
@@ -195,67 +255,39 @@ def fall(controller, rounds=None, direction=None, delay=0.15, color=None, speed=
         counter += 1
         logger.debug("%s", counter)
 
-def diff_set_array(controller, now, goal, direction=None):
-    helper = copy.deepcopy(now)
-    goal = copy.deepcopy(goal)
-    #print("Now:  ", now)
-    #print("Goal: ", goal)
-    counter = 50
-    while counter != 0:
-        for x in range(7):
-            for i in range(3):
-                a = float(helper[x][i])
-                b = float(goal[x][i])
-                if abs(a - b) <= 2:
-                    helper[x][i] = float(goal[x][i])
-                elif helper[x][i] < float(goal[x][i]):
-                    helper[x][i] += abs(a-b) / counter
-                elif float(helper[x][i]) > float(goal[x][i]):
-                    helper[x][i] -= abs(a-b) / counter
 
-                helper[x][i] = int(helper[x][i])
+def rb(controller, rounds=21, direction=None, delay=0.4, speed=10):
+    """
+    Displays a rainbow effect on LEDs, cycling through colors in the specified direction.
 
-        controller.set_full_array(helper, direction)
-        sleep(0.02)
-        counter -= 1
-    return list(helper)
-
-def debug(direction=None):
-    # while 1:
-    #     #led = [red, orange, yellow, green, cyan, blue, white]
-    #     led = [red, green, yellow, green, cyan, green, red]
-    #     controller.set_full_array(led, direction)
-    #     sleep(0.5)
-    # sleep(5)
-    led = [red, red, red, red, red, red, red]
-    sleep(0.5)
-    controller.set_full_array(led, direction)
-    led = [green, green, green, green, green, green, green]
-    sleep(0.5)
-    controller.set_full_array(led, direction)
-    led = [blue, blue, blue, blue, blue, blue, blue]
-    sleep(0.5)
-    controller.set_full_array(led, direction)
-
-
-def rb(controller, rounds=21, direction=None, delay=0.5, speed=10):
-    # Rainbow
-    if not direction:
+    Args:
+        controller: The object responsible for setting the LED colors.
+        rounds (int): Number of cycles to perform.
+        direction: The direction of the rainbow animation. Randomly chosen if not provided.
+        delay (float): Base delay between transitions.
+        speed (int): Adjusts the delay (higher = faster transitions).
+    """
+    if direction is None:
         direction = random.choice(directions)
-    logger.info("RainBow, direction: %s", direction)
+    logger.info("Rainbow effect, direction: %s", direction)
 
+    # Initialize the rainbow colors
     led = [red, orange, yellow, green, cyan, blue, white]
     controller.set_full_array(led, direction)
-    counter = 0
-    while counter < rounds:
-        goal = copy.deepcopy(led)
-        goal.append(goal[0])
-        goal.remove(goal[0])
 
-        led = copy.deepcopy(diff_set_array(controller, led, goal, direction))
-        sleep(0.25) # Short delay better see the effect
-        counter += 1
-        logger.debug("%s", counter)
+    for counter in range(rounds):
+        # Rotate the LED array by one position
+        goal = led[1:] + [led[0]]
+
+        # Transition to the new LED configuration
+        led = diff_set_array(controller, led, goal, direction, speed)
+
+        # Adjust speed-based delay
+        speed_sleep(delay, speed)
+
+        # Log progress
+        logger.debug("Round: %d", counter + 1)
+
 
 # Not used? Could probably be replaced by set_all directly
 def blank():
