@@ -5,6 +5,7 @@ Manages WebSocket connections from controllers and provides REST API for web fro
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from datetime import datetime
 import logging
 import json
@@ -42,8 +43,8 @@ app.add_middleware(
 manager = ConnectionManager()
 
 
-@app.get("/")
-async def root():
+@app.get("/api/health")
+async def health_check():
     """Health check endpoint"""
     return {
         "status": "running",
@@ -153,3 +154,8 @@ async def shutdown_event():
     """Cleanup on shutdown"""
     logger.info("Backend server shutting down")
     await manager.disconnect_all()
+
+
+# Serve static files (frontend application) - MUST be last!
+# This catches all remaining routes and serves static files
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
