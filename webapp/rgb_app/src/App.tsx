@@ -1,11 +1,17 @@
 import './App.css';
 import { handleButtonClick, handleSliderChange, handleColorChange } from './http_handler';
+import { ConnectionStatus } from './ConnectionStatus';
 
 function App() {
   return (
-    <div style={{ textAlign: "center", marginTop: "25px" }}>
-      <h1>Sandnabba Candlestick Controller - v2024</h1>
-      <div>
+    <div>
+      {/* Connection Status Header */}
+      <ConnectionStatus />
+      
+      <div style={{ textAlign: "center", marginTop: "25px" }}>
+        <h1>Sandnabba Candlestick Controller - v2025</h1>
+        
+        <div>
         <button
           onClick={() =>
             handleButtonClick({
@@ -129,12 +135,12 @@ function App() {
             onClick={() =>
               handleButtonClick({
                 program: "random",
-                speed: "10"
+                speed: 10
               })
             }
             style={resetButtonStyle}
           >
-            Reset
+            Reset / Random
           </button>
         </div>
         {/* Info Paragraph */}
@@ -143,6 +149,7 @@ function App() {
             For documentation, build instruction and more information, please see:<br />
             <a href='https://github.com/sandnabba/rgb_candlestick'>https://github.com/sandnabba/rgb_candlestick</a>
           </p>
+        </div>
         </div>
       </div>
     </div>
