@@ -4,6 +4,9 @@ import uvicorn
 import argparse
 import logging
 
+# Import the app instance so uvicorn can find it when running "uvicorn main:app"
+from app import app
+
 def setup_logging(log_level: str):
     """Configure logging level based on user input."""
     numeric_level = getattr(logging, log_level.upper(), None)

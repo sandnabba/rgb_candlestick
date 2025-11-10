@@ -1,6 +1,15 @@
 """
 FastAPI Backend for RGB Candlestick Controller
-Manages WebSocket connections from controllers and provides REST API for web frontend.
+
+This backend has three main responsibilities:
+1. Serve the web frontend (static files at /)
+2. REST API for the web frontend (endpoints at /api/*)
+3. WebSocket endpoint for controller connections (at /ws/{candlestick_id})
+
+Architecture:
+- Controllers connect via WebSocket to /ws/{candlestick_id}
+- Web users access the frontend at / (served as static files)
+- Frontend communicates with backend via REST API at /api/*
 """
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
@@ -10,6 +19,7 @@ from datetime import datetime
 import logging
 import json
 import asyncio
+import os
 
 from models import (
     CandlestickState,
@@ -27,13 +37,15 @@ app = FastAPI(
     title="RGB Candlestick Backend",
     description="Central backend managing candlestick controllers via WebSocket",
     version="1.0.0",
-    redoc_url=None  # Disable ReDoc, use Swagger only
+    redoc_url=None,  # Disable ReDoc, use Swagger only
+    # Trust proxy headers when behind load balancer
+    root_path="",  # Set this if your load balancer uses a path prefix
 )
 
 # CORS middleware for web frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_origins=["*"],  # In production, specify your frontend domain (e.g., ["https://yourdomain.com"])
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -101,7 +113,7 @@ async def websocket_endpoint(websocket: WebSocket, candlestick_id: str):
     WebSocket endpoint for candlestick controllers to connect.
     Each controller maintains a persistent connection and receives commands from the backend.
     """
-    await manager.connect(websocket, candlestick_id)
+    await manager.connect_controller(websocket, candlestick_id)
     logger.info(f"Candlestick '{candlestick_id}' connected")
     
     try:
@@ -135,10 +147,10 @@ async def websocket_endpoint(websocket: WebSocket, candlestick_id: str):
                 
     except WebSocketDisconnect:
         logger.info(f"Candlestick '{candlestick_id}' disconnected")
-        manager.disconnect(candlestick_id)
+        manager.disconnect_controller(candlestick_id)
     except Exception as e:
         logger.error(f"Error in WebSocket connection for {candlestick_id}: {e}")
-        manager.disconnect(candlestick_id)
+        manager.disconnect_controller(candlestick_id)
 
 
 @app.on_event("startup")
@@ -156,6 +168,13 @@ async def shutdown_event():
     await manager.disconnect_all()
 
 
-# Serve static files (frontend application) - MUST be last!
-# This catches all remaining routes and serves static files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Serve static files for the web frontend (MUST be last!)
+# This serves the user-facing web interface
+# All API routes are at /api/* and WebSocket at /ws/* so they won't be affected
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(static_dir):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+    logger.info(f"Serving web frontend from '{static_dir}'")
+else:
+    logger.warning(f"Static directory not found at '{static_dir}' - web frontend not available")
+    logger.info("To serve the frontend: build it and place files in the 'static' directory")

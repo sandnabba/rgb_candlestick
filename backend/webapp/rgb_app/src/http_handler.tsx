@@ -4,8 +4,9 @@
 import { ChangeEvent } from "react";
 
 // Backend configuration
-// In production, this should be set via environment variables
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+// When served from the same origin (Docker container), use relative URLs
+// Otherwise, can be configured via environment variables for development
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 const DEFAULT_CANDLESTICK_ID = import.meta.env.VITE_CANDLESTICK_ID || "candlestick_001";
 
 // TypeScript interfaces
