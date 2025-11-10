@@ -38,6 +38,7 @@ class CandlestickState(BaseModel):
     id: str = Field(..., description="Unique identifier for the candlestick")
     connected: bool = Field(..., description="Whether the candlestick is currently connected")
     program: Optional[str] = Field(None, description="Currently running program")
+    random: Optional[bool] = Field(None, description="Whether random mode is active")
     speed: Optional[int] = Field(None, description="Current speed setting")
     direction: Optional[str] = Field(None, description="Current direction")
     color: Optional[str] = Field(None, description="Current color (if in static color mode)")
@@ -74,6 +75,7 @@ class StatusMessage(WebSocketMessage):
     """Status update from controller"""
     type: MessageType = MessageType.STATUS
     program: Optional[str] = None
+    random: Optional[bool] = None
     speed: Optional[int] = None
     direction: Optional[str] = None
     color: Optional[str] = None

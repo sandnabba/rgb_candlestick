@@ -19,11 +19,17 @@ logger = logging.getLogger(__name__)
 
 # Global state
 current_program = "random"
+random_mode = True  # Track if we're in random mode
 current_speed = Value('i', 10)
 current_direction = None
 current_color = None
 candle_process = None
 controller = None
+backend_client = None  # Global reference to backend client for status updates
+# Shared arrays to communicate the actual running state from the subprocess
+# Size 20 should be enough for program names and direction
+current_program_shared = Array('c', 20)
+current_direction_shared = Array('c', 10)
 
 
 def signal_handler(signal, frame):
@@ -37,7 +43,7 @@ def signal_handler(signal, frame):
 
 def restart_candle(program, speed, direction):
     """Restart the candlestick program with new parameters"""
-    global candle_process
+    global candle_process, current_program_shared, current_direction_shared
     
     logger.info(f"Starting/restarting candle: program={program}, speed={speed.value}, direction={direction}")
     
@@ -45,7 +51,11 @@ def restart_candle(program, speed, direction):
         candle_process.terminate()
         candle_process.join()
     
-    candle_process = Process(target=rgb_serial.run_program, args=(program, speed, direction))
+    # Clear the shared values
+    current_program_shared.value = b''
+    current_direction_shared.value = b''
+    
+    candle_process = Process(target=rgb_serial.run_program, args=(program, speed, direction, None, current_program_shared, current_direction_shared))
     candle_process.start()
     return candle_process
 
@@ -62,12 +72,12 @@ def html_color_to_rgb(color_code):
     return [red, green, blue]
 
 
-def handle_backend_command(command: dict):
+async def handle_backend_command(command: dict):
     """
     Handle commands received from the backend via WebSocket.
     This is called by the BackendClient when a command is received.
     """
-    global current_program, current_speed, current_direction, current_color, candle_process, controller
+    global current_program, random_mode, current_speed, current_direction, current_color, candle_process, controller, backend_client
     
     logger.info(f"Received command from backend: {command}")
     
@@ -77,17 +87,24 @@ def handle_backend_command(command: dict):
             restart_candle(current_program, current_speed, current_direction)
         
         if 'program' in command:
-            current_program = command['program']
-            logger.info(f"Switching to program: {current_program}")
+            requested_program = command['program']
+            random_mode = (requested_program == "random")
+            # Clear color when switching to a program (not static color mode)
+            current_color = None
+            logger.info(f"Switching to program: {requested_program}, random_mode: {random_mode}")
             
-            if current_program == "stop":
+            if requested_program == "stop":
+                current_program = "stop"
                 if candle_process and candle_process.is_alive():
                     candle_process.terminate()
                     candle_process.join()
-                candle_process = Process(target=rgb_serial.blank)
+                candle_process = Process(target=rgb_serial.blank_wrapper)
                 candle_process.start()
             else:
-                restart_candle(current_program, current_speed, current_direction)
+                # Don't update current_program yet for random mode - let the monitor task report it
+                if not random_mode:
+                    current_program = requested_program
+                restart_candle(requested_program, current_speed, current_direction)
         
         if 'speed' in command:
             current_speed.value = int(command['speed'])
@@ -98,22 +115,93 @@ def handle_backend_command(command: dict):
             rgb_color = html_color_to_rgb(current_color)
             logger.info(f"Setting static color: {current_color} -> {rgb_color}")
             
+            # When setting static color, we're in a special mode
+            current_program = "static_color"
+            current_direction = None
+            random_mode = False
+            
             if candle_process and candle_process.is_alive():
                 candle_process.terminate()
                 candle_process.join()
             
+            # Clear shared values since no animated program is running
+            current_program_shared.value = b''
+            current_direction_shared.value = b''
+            
             candle_process = Process(target=rgb_serial.set_color, args=(controller, rgb_color))
             candle_process.start()
+        
+        # Send status update back to backend after handling command
+        # For random mode with program change, wait for monitor task to report actual program
+        should_send_status = True
+        if 'program' in command and random_mode and command['program'] == 'random':
+            should_send_status = False
+            logger.debug("Waiting for monitor task to report actual program in random mode")
+        
+        if should_send_status and backend_client and backend_client.connected:
+            await backend_client.send_status(
+                program=current_program,
+                random=random_mode,
+                speed=current_speed.value,
+                direction=current_direction,
+                color=current_color
+            )
+            logger.debug("Sent status update to backend")
             
     except Exception as e:
         logger.error(f"Error handling command: {e}", exc_info=True)
+
+
+async def monitor_program_changes():
+    """
+    Background task that monitors the shared program and direction values and sends status updates
+    when the actual running state changes (happens in random mode)
+    """
+    global current_program_shared, current_direction_shared, backend_client, random_mode, current_direction, current_program
+    
+    last_reported_program = ""
+    last_reported_direction = ""
+    
+    while True:
+        await asyncio.sleep(0.5)  # Check every 0.5 seconds for faster updates
+        
+        if not backend_client or not backend_client.connected:
+            continue
+        
+        # Read the actual running program and direction from shared memory
+        try:
+            actual_program = current_program_shared.value.decode('utf-8').rstrip('\x00')
+            actual_direction = current_direction_shared.value.decode('utf-8').rstrip('\x00')
+            
+            # Only send updates if we have a program running (not in static color mode)
+            if actual_program and (actual_program != last_reported_program or actual_direction != last_reported_direction):
+                logger.info(f"State changed - program: {actual_program}, direction: {actual_direction}, random_mode: {random_mode}")
+                last_reported_program = actual_program
+                last_reported_direction = actual_direction
+                
+                # Update global values if they changed
+                if actual_direction:
+                    current_direction = actual_direction
+                if actual_program:
+                    current_program = actual_program
+                
+                # Send status update with the actual program and direction
+                await backend_client.send_status(
+                    program=actual_program,
+                    random=random_mode,
+                    speed=current_speed.value,
+                    direction=actual_direction if actual_direction else current_direction,
+                    color=current_color
+                )
+        except Exception as e:
+            logger.error(f"Error monitoring program changes: {e}")
 
 
 async def run_with_backend(backend_url: str, candlestick_id: str):
     """
     Main async function that runs the controller with backend connection.
     """
-    global candle_process, controller, current_program, current_speed, current_direction
+    global candle_process, controller, current_program, current_speed, current_direction, backend_client
     
     logger.info("Starting controller with backend connection")
     
@@ -123,30 +211,42 @@ async def run_with_backend(backend_url: str, candlestick_id: str):
     # Start default program
     candle_process = restart_candle(current_program, current_speed, current_direction)
     
-    # Initialize backend client
-    client = BackendClient(
+    # Initialize backend client and store globally
+    backend_client = BackendClient(
         backend_url=backend_url,
         candlestick_id=candlestick_id,
         command_callback=handle_backend_command
     )
     
     # Send initial status
-    await client.connect()
-    if client.connected:
-        await client.send_status(
+    await backend_client.connect()
+    if backend_client.connected:
+        logger.info(f"Sending initial status: program={current_program}, random={random_mode}, speed={current_speed.value}, direction={current_direction}, color={current_color}")
+        await backend_client.send_status(
             program=current_program,
+            random=random_mode,
             speed=current_speed.value,
             direction=current_direction,
             color=current_color
         )
+        logger.info("Initial status sent")
+    
+    # Start background task to monitor program changes
+    monitor_task = asyncio.create_task(monitor_program_changes())
     
     # Run the client (this will keep reconnecting if connection is lost)
     try:
-        await client.run()
+        await backend_client.run()
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt received")
     finally:
-        await client.disconnect()
+        monitor_task.cancel()
+        try:
+            await monitor_task
+        except asyncio.CancelledError:
+            pass
+        
+        await backend_client.disconnect()
         if candle_process and candle_process.is_alive():
             candle_process.terminate()
             candle_process.join()

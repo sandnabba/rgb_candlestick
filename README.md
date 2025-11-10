@@ -84,4 +84,3 @@ Everything is terribly hacky. Remember that this is a weekend project setup a so
 
 * Make the number of candlestick LEDs dynamic (support for 7 LED candlesticks).
 * Implement basic light patterns in the Arduino code so that it can run without a dedicated controller.
-* Implement a GET function in the API so that the web app can retrieve the current state of the candlestick.

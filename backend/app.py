@@ -122,7 +122,7 @@ async def websocket_endpoint(websocket: WebSocket, candlestick_id: str):
             data = await websocket.receive_text()
             message = json.loads(data)
             
-            logger.debug(f"Received from {candlestick_id}: {message}")
+            logger.info(f"Received from {candlestick_id}: {message}")
             
             # Handle different message types
             msg_type = message.get("type")
@@ -132,11 +132,12 @@ async def websocket_endpoint(websocket: WebSocket, candlestick_id: str):
                 manager.update_state(
                     candlestick_id,
                     program=message.get("program"),
+                    random=message.get("random"),
                     speed=message.get("speed"),
                     direction=message.get("direction"),
                     color=message.get("color")
                 )
-                logger.debug(f"Updated state for {candlestick_id}")
+                logger.info(f"Updated state for {candlestick_id}: program={message.get('program')}, random={message.get('random')}, speed={message.get('speed')}, direction={message.get('direction')}, color={message.get('color')}")
                 
             elif msg_type == MessageType.HEARTBEAT:
                 # Just update last_seen timestamp
