@@ -10,8 +10,33 @@ This is the code and a short how-to on how I made my RGB LED candlestick for chr
 * Easy to add new features and light-patterns.
 
 ### Design
-Today the project is built with two main components, the candlestick and the control software.
-Since it's much easier to rewrite the Python code than to compile and flash the Arduino code, most of the intelligence resides in the controller.
+The project consists of three main components: the candlestick hardware, the controller software, and the backend server.
+
+#### Architecture Overview
+
+```mermaid
+graph LR
+    WebApp[Web App<br/>React/TypeScript]
+    Backend[Backend Server<br/>FastAPI]
+    Controller[Controller<br/>Python]
+    Candlestick[Candlestick<br/>Arduino]
+    
+    WebApp <-->|HTTP REST API| Backend
+    Backend <-->|WebSocket| Controller
+    Controller <-->|Serial USB| Candlestick
+    
+    style WebApp fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    style Backend fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
+    style Controller fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+    style Candlestick fill:#E91E63,stroke:#AD1457,stroke-width:2px,color:#fff
+```
+
+The system uses a WebSocket-based architecture where:
+- **Backend Server**: Central FastAPI server that manages all candlestick connections and provides a REST API
+- **Controller**: Python application that connects to the backend via WebSocket and controls the physical candlestick
+- **Web App**: React frontend that communicates with the backend to control candlesticks
+
+This architecture supports multiple candlesticks connecting to a single backend, enabling centralized management and control.
 
 #### Candlestick
 The candlestick is designed to be easy and inexpensive to build, simple to use, and very reliable. It is:
@@ -25,9 +50,23 @@ The leds are 5mm WS2812 (NeoPixel compatible) RGB Leds.
 [Build instructions](/candlestick)
 
 #### Controller
-The controller software is written in Python, and is verified to work on both generic x86 and ARM (Raspberry Pi)
+The controller software is written in Python and connects to the backend server via WebSocket. It runs on any system with Python support (x86, ARM, Raspberry Pi) and communicates with the Arduino via USB serial.
 
-For more information, see the [controllers README](/controller/)
+For more information, see the [controller README](/controller/)
+
+#### Backend
+The backend server is a FastAPI application that manages WebSocket connections from controllers and provides a REST API for web applications. It tracks the state of all connected candlesticks and routes commands appropriately.
+
+For more information, see the [backend README](/backend/)
+
+#### Web App
+A React/TypeScript web interface for controlling candlesticks through the backend API. Supports multiple candlesticks and displays real-time connection status.
+
+For more information, see the [webapp README](/webapp/)
+
+## Quick Start
+
+See the [QUICKSTART.md](./QUICKSTART.md) guide for step-by-step instructions on getting the system running.
 
 ## Quick and Dirty Installation Using Ansible
 
@@ -43,8 +82,6 @@ Runs as root, uses system packages etc... Not pretty, but it works!
 
 Everything is terribly hacky. Remember that this is a weekend project setup a some week before Christmas, eventually with small improvements "next year".
 
-* Make the number of LEDs dynamic
-  * Support for multiple candlesticks in the controller software.
-  * Add a "super controller" that can command multiple candlesticks over network.
+* Make the number of candlestick LEDs dynamic (support for 7 LED candlesticks).
 * Implement basic light patterns in the Arduino code so that it can run without a dedicated controller.
 * Implement a GET function in the API so that the web app can retrieve the current state of the candlestick.

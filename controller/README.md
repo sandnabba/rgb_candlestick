@@ -40,12 +40,54 @@ If rgb_candlestick fails with the error `AttributeError: 'Serial' object has no 
 
 ## Startup
 
+### WebSocket Mode (Recommended)
+
+The controller can run in WebSocket mode to connect to the central backend:
+
+```bash
+# Navigate to the controller directory
+cd controller
+
+# Create/activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies (including new websockets package)
+pip install -r requirements.txt
+
+# Run the controller in WebSocket mode
+python3 src/main_websocket.py --log-level INFO
+```
+
+The controller will:
+- Connect to the backend at `ws://localhost:8000`
+- Register as `candlestick_001` (default ID)
+- Start running the default program
+- Listen for commands from the backend
+
+### Standalone Mode (Legacy)
+
 Launch the application by running `main.py`. A simple debug tool is also available, which can be started with:
 ```sh
 python3 -m controller.debug
 ```
 
 ### Auto Start / Systemd Service
+
+#### WebSocket Mode Service
+There is a `rgb-candlestick-websocket.service` Systemd unit available to run the application in WebSocket mode as a system service.  
+Install it in `/etc/systemd/system/rgb-candlestick-websocket.service` and reload Systemd: `systemctl daemon-reload`.
+
+Now the service can be controlled by systemd:
+```sh
+# Start/stop
+systemctl [start|stop|status] rgb-candlestick-websocket
+
+# View logs
+journalctl -u rgb-candlestick-websocket [-f]
+```
+
+#### Standalone Mode Service (Legacy)
 There is a `rgb-candlestick.service` Systemd unit available to run the application as a system service.  
 Install it in `/etc/systemd/system/rgb-candlestick.service` and reload Systemd: `systemctl daemon-reload`.
 

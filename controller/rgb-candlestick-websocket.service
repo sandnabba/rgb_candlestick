@@ -1,0 +1,17 @@
+[Unit]
+Description=RGB Candlestick Controller (WebSocket Mode)
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/rgb_candlestick/controller/src
+Environment="PATH=/opt/rgb_candlestick/controller/.venv/bin"
+Environment="BACKEND_URL=ws://localhost:8000"
+Environment="CANDLESTICK_ID=candlestick_001"
+ExecStart=/opt/rgb_candlestick/controller/.venv/bin/python3 main_websocket.py --log-level INFO
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
