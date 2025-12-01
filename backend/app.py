@@ -15,6 +15,7 @@ Architecture:
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
 from datetime import datetime
 import logging
 import json
@@ -25,12 +26,36 @@ from models import (
     CandlestickState,
     CandlestickCommand,
     CandlestickListResponse,
-    MessageType
+    MessageType,
+    StatusMessage
 )
 from connection_manager import ConnectionManager
 
 # Setup logging
 logger = logging.getLogger(__name__)
+
+# Connection manager for WebSocket connections (initialized before lifespan)
+manager = ConnectionManager()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events"""
+    # Startup
+    logger.info("Backend server starting up")
+    cleanup_task = asyncio.create_task(manager.cleanup_stale_connections())
+    
+    yield
+    
+    # Shutdown
+    logger.info("Backend server shutting down")
+    cleanup_task.cancel()
+    try:
+        await cleanup_task
+    except asyncio.CancelledError:
+        pass
+    await manager.disconnect_all()
+
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -38,21 +63,27 @@ app = FastAPI(
     description="Central backend managing candlestick controllers via WebSocket",
     version="1.0.0",
     redoc_url=None,  # Disable ReDoc, use Swagger only
-    # Trust proxy headers when behind load balancer
-    root_path="",  # Set this if your load balancer uses a path prefix
+    lifespan=lifespan,
 )
 
 # CORS middleware for web frontend
+# Read allowed origins from environment variable (comma-separated list)
+# Default to "*" for development, but should be set to specific domains in production
+cors_origins_env = os.getenv("CORS_ORIGINS", "*")
+if cors_origins_env == "*":
+    cors_origins = ["*"]
+else:
+    cors_origins = [origin.strip() for origin in cors_origins_env.split(",")]
+
+logger.info(f"CORS allowed origins: {cors_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain (e.g., ["https://yourdomain.com"])
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Connection manager for WebSocket connections
-manager = ConnectionManager()
 
 
 @app.get("/api/health")
@@ -100,7 +131,7 @@ async def send_command(candlestick_id: str, command: CandlestickCommand):
     
     try:
         await manager.send_command(candlestick_id, command)
-        logger.info(f"Command sent to {candlestick_id}: {command.dict(exclude_none=True)}")
+        logger.info(f"Command sent to {candlestick_id}: {command.model_dump(exclude_none=True)}")
         return {"status": "success", "message": "Command sent to candlestick"}
     except Exception as e:
         logger.error(f"Failed to send command to {candlestick_id}: {e}")
@@ -120,23 +151,37 @@ async def websocket_endpoint(websocket: WebSocket, candlestick_id: str):
         while True:
             # Receive messages from the controller
             data = await websocket.receive_text()
-            message = json.loads(data)
             
-            logger.debug(f"Received from {candlestick_id}: {message}")
+            try:
+                message = json.loads(data)
+            except json.JSONDecodeError as e:
+                logger.warning(f"Invalid JSON from {candlestick_id}: {e}")
+                continue
+            
+            # Validate message has required 'type' field
+            msg_type = message.get("type")
+            if not msg_type:
+                logger.warning(f"Missing 'type' in message from {candlestick_id}")
+                continue
+            
+            logger.info(f"Received from {candlestick_id}: {message}")
             
             # Handle different message types
-            msg_type = message.get("type")
-            
             if msg_type == MessageType.STATUS:
-                # Update the state with status information
-                manager.update_state(
-                    candlestick_id,
-                    program=message.get("program"),
-                    speed=message.get("speed"),
-                    direction=message.get("direction"),
-                    color=message.get("color")
-                )
-                logger.debug(f"Updated state for {candlestick_id}")
+                # Validate status message with Pydantic
+                try:
+                    status = StatusMessage(**message)
+                    manager.update_state(
+                        candlestick_id,
+                        program=status.program,
+                        random=status.random,
+                        speed=status.speed,
+                        direction=status.direction,
+                        color=status.color
+                    )
+                    logger.info(f"Updated state for {candlestick_id}: program={status.program}, random={status.random}, speed={status.speed}, direction={status.direction}, color={status.color}")
+                except Exception as e:
+                    logger.warning(f"Invalid status message from {candlestick_id}: {e}")
                 
             elif msg_type == MessageType.HEARTBEAT:
                 # Just update last_seen timestamp
@@ -151,21 +196,6 @@ async def websocket_endpoint(websocket: WebSocket, candlestick_id: str):
     except Exception as e:
         logger.error(f"Error in WebSocket connection for {candlestick_id}: {e}")
         manager.disconnect_controller(candlestick_id)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize on startup"""
-    logger.info("Backend server starting up")
-    # Start background task for cleaning up stale connections
-    asyncio.create_task(manager.cleanup_stale_connections())
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    logger.info("Backend server shutting down")
-    await manager.disconnect_all()
 
 
 # Serve static files for the web frontend (MUST be last!)

@@ -1,44 +1,13 @@
 // ConnectionStatus component - displays candlestick connection status as a header/toolbar
 
-import { useState, useEffect } from "react";
-import { Candlestick, listCandlesticks, setCurrentCandlestickId, getCurrentCandlestickId } from "./http_handler";
+import { useCandlestick } from "./CandlestickContext";
 
-export const ConnectionStatus = () => {
-  const [candlesticks, setCandlesticks] = useState<Candlestick[]>([]);
-  const [selectedId, setSelectedId] = useState<string>(getCurrentCandlestickId());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface ConnectionStatusProps {
+  onStatusClick?: () => void;
+}
 
-  // Fetch candlesticks on mount and periodically
-  useEffect(() => {
-    const fetchCandlesticks = async () => {
-      try {
-        const sticks = await listCandlesticks();
-        setCandlesticks(sticks);
-        setError(null);
-        
-        // If no selection yet and we have candlesticks, select the first connected one
-        if (!selectedId && sticks.length > 0) {
-          const firstConnected = sticks.find(c => c.connected);
-          const newId = firstConnected?.id || sticks[0].id;
-          setSelectedId(newId);
-          setCurrentCandlestickId(newId);
-        }
-      } catch (err) {
-        setError("Failed to connect to backend");
-        console.error("Error fetching candlesticks:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCandlesticks();
-    const interval = setInterval(fetchCandlesticks, 3000); // Refresh every 3 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const selectedCandlestick = candlesticks.find(c => c.id === selectedId);
+export const ConnectionStatus = ({ onStatusClick }: ConnectionStatusProps) => {
+  const { selectedCandlestick, loading, error } = useCandlestick();
 
   // Format last update time
   const formatLastUpdate = (lastSeen?: string) => {
@@ -49,7 +18,7 @@ export const ConnectionStatus = () => {
 
   if (loading) {
     return (
-      <div style={headerContainerStyle}>
+      <div style={{ ...headerContainerStyle, cursor: onStatusClick ? "pointer" : "default" }} onClick={onStatusClick}>
         <span style={loadingStyle}>🔄 Connecting...</span>
       </div>
     );
@@ -57,15 +26,15 @@ export const ConnectionStatus = () => {
 
   if (error) {
     return (
-      <div style={{ ...headerContainerStyle, ...errorHeaderStyle }}>
+      <div style={{ ...headerContainerStyle, ...errorHeaderStyle, cursor: onStatusClick ? "pointer" : "default" }} onClick={onStatusClick}>
         <span style={errorStyle}>● Disconnected</span>
       </div>
     );
   }
 
-  if (candlesticks.length === 0 || !selectedCandlestick?.connected) {
+  if (!selectedCandlestick?.connected) {
     return (
-      <div style={{ ...headerContainerStyle, ...warningHeaderStyle }}>
+      <div style={{ ...headerContainerStyle, ...warningHeaderStyle, cursor: onStatusClick ? "pointer" : "default" }} onClick={onStatusClick}>
         <span style={errorStyle}>● Disconnected</span>
       </div>
     );
@@ -73,7 +42,7 @@ export const ConnectionStatus = () => {
 
   // Connected state - show name and last update
   return (
-    <div style={connectedHeaderStyle}>
+    <div style={{ ...connectedHeaderStyle, cursor: onStatusClick ? "pointer" : "default" }} onClick={onStatusClick}>
       <div style={contentStyle}>
         <span style={connectedDotStyle}>●</span>
         <span style={nameStyle}>{selectedCandlestick.id}</span>

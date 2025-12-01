@@ -64,10 +64,6 @@ A React/TypeScript web interface for controlling candlesticks through the backen
 
 For more information, see the [webapp README](/webapp/)
 
-## Quick Start
-
-See the [QUICKSTART.md](./QUICKSTART.md) guide for step-by-step instructions on getting the system running.
-
 ## Quick and Dirty Installation Using Ansible
 
 There is an Ansible [playbook](./ansible_playbook.yaml) available that can be used to install both the web app, controller, Nginx configuration and systemd-unit on a Rasperry Pi.
@@ -83,5 +79,7 @@ Runs as root, uses system packages etc... Not pretty, but it works!
 Everything is terribly hacky. Remember that this is a weekend project setup a some week before Christmas, eventually with small improvements "next year".
 
 * Make the number of candlestick LEDs dynamic (support for 7 LED candlesticks).
-* Implement basic light patterns in the Arduino code so that it can run without a dedicated controller.
-* Implement a GET function in the API so that the web app can retrieve the current state of the candlestick.
+* Replace Arduino + Raspberry with ESP32
+  * Move light patterns into ESP code
+  * Add 1" screen and button on candlestick for non-controller operation
+  * Mobile app using bluetooth?

@@ -14,6 +14,7 @@ export interface Candlestick {
   id: string;
   connected: boolean;
   program: string | null;
+  random: boolean | null;
   speed: number | null;
   direction: string | null;
   color: string | null;

@@ -120,6 +120,7 @@ class ConnectionManager:
         self,
         candlestick_id: str,
         program: Optional[str] = None,
+        random: Optional[bool] = None,
         speed: Optional[int] = None,
         direction: Optional[str] = None,
         color: Optional[str] = None
@@ -131,14 +132,16 @@ class ConnectionManager:
         
         state = self.states[candlestick_id]
         
-        if program is not None:
-            state.program = program
+        # Always update these fields (they can be None to clear the value)
+        state.program = program if program is not None else state.program
+        state.direction = direction  # Always update, can be None
+        state.color = color  # Always update, can be None
+        
+        # Only update these if a value is provided
+        if random is not None:
+            state.random = random
         if speed is not None:
             state.speed = speed
-        if direction is not None:
-            state.direction = direction
-        if color is not None:
-            state.color = color
         
         state.last_seen = datetime.now()
     
@@ -157,7 +160,7 @@ class ConnectionManager:
         # Prepare command message
         message = {
             "type": MessageType.COMMAND,
-            **command.dict(exclude_none=True)
+            **command.model_dump(exclude_none=True)
         }
         
         try:

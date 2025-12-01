@@ -5,6 +5,7 @@ import logging
 import sys
 from .serial_controller import SerialController
 from .patterns import *
+from .patterns import directions  # Import directions list for random selection
 logger = logging.getLogger(__name__)
 
 functions = {
@@ -18,29 +19,50 @@ functions = {
     'rb2': rb,
 }
 
-def run_random(controller, speed=10):
-    program = random.choice(list(functions.keys()))
-    logger.info("Random program, Starting: %s", program)
-    functions[program](controller, speed=speed)
+def run_random(controller, speed=10, current_program_shared=None, current_direction_shared=None):
+    # Normalize rb2 to rb for reporting
+    program_choices = list(functions.keys())
+    program = random.choice(program_choices)
+    
+    # Pick a random direction
+    direction = random.choice(directions)
+    
+    # Normalize rb2 to rb for status reporting
+    program_to_report = 'rb' if program == 'rb2' else program
+    
+    logger.info("Random program, Starting: %s with direction: %s", program_to_report, direction)
+    
+    # Update shared values so parent process knows what's running
+    if current_program_shared is not None:
+        current_program_shared.value = program_to_report.encode('utf-8')
+    if current_direction_shared is not None:
+        current_direction_shared.value = direction.encode('utf-8')
+    
+    functions[program](controller, speed=speed, direction=direction)
 
-def run_program(program, speed, direction=None, rgb_color=None, update=None):
+def run_program(program, speed, direction=None, rgb_color=None, current_program_shared=None, current_direction_shared=None):
     '''This function is called when the script is run externally'''
     controller = SerialController()
-    # print("Speed: ", speed.value)
-    # print("Direction: ", direction)
-    # print("Program type: ", type(program))
-    # print("Speed type: ", type(speed))
-    # print("direction type: ", type(direction))
+    
+    # If no direction specified, pick a random one
+    if direction is None:
+        direction = random.choice(directions)
 
     while True:
         if program == "random":
-            run_random(controller, speed)
+            run_random(controller, speed, current_program_shared, current_direction_shared)
         else:
+            # Update shared values with the specific program and direction
+            if current_program_shared is not None:
+                current_program_shared.value = program.encode('utf-8')
+            if current_direction_shared is not None:
+                current_direction_shared.value = direction.encode('utf-8')
             functions[program](controller=controller, speed=speed, direction=direction)
 
-def blank():
+def blank_wrapper():
+    """Wrapper for the blank function to be called from main_websocket"""
     logger.info("Starting blank function")
-    p.blank()
+    blank()
 
 def set_color(controller, rgb_color):
     #controller = SerialController()

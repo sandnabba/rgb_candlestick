@@ -65,6 +65,7 @@ class BackendClient:
     async def send_status(
         self,
         program: Optional[str] = None,
+        random: Optional[bool] = None,
         speed: Optional[int] = None,
         direction: Optional[str] = None,
         color: Optional[str] = None
@@ -77,6 +78,7 @@ class BackendClient:
         message = {
             "type": "status",
             "program": program,
+            "random": random,
             "speed": speed,
             "direction": direction,
             "color": color
@@ -84,7 +86,7 @@ class BackendClient:
         
         try:
             await self.websocket.send(json.dumps(message))
-            logger.debug(f"Sent status update: {message}")
+            logger.info(f"Sent status update: {message}")
         except Exception as e:
             logger.error(f"Failed to send status: {e}")
             self.connected = False
@@ -115,8 +117,11 @@ class BackendClient:
                     logger.debug(f"Received message: {data}")
                     
                     if data.get("type") == "command":
-                        # Pass command to callback
-                        self.command_callback(data)
+                        # Pass command to callback (handle both sync and async callbacks)
+                        if asyncio.iscoroutinefunction(self.command_callback):
+                            await self.command_callback(data)
+                        else:
+                            self.command_callback(data)
                     else:
                         logger.warning(f"Unknown message type: {data.get('type')}")
                         
