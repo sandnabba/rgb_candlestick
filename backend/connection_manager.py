@@ -160,7 +160,7 @@ class ConnectionManager:
         # Prepare command message
         message = {
             "type": MessageType.COMMAND,
-            **command.dict(exclude_none=True)
+            **command.model_dump(exclude_none=True)
         }
         
         try:

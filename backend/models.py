@@ -22,8 +22,8 @@ class CandlestickCommand(BaseModel):
     direction: Optional[str] = Field(None, description="Direction: 'left', 'right', 'up', 'down'")
     color: Optional[str] = Field(None, description="HTML color code (e.g., '#ff0000')")
 
-    class Config:
-        schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "program": "rb",
                 "speed": 15,
@@ -31,6 +31,7 @@ class CandlestickCommand(BaseModel):
                 "color": None
             }
         }
+    }
 
 
 class CandlestickState(BaseModel):
@@ -44,8 +45,8 @@ class CandlestickState(BaseModel):
     color: Optional[str] = Field(None, description="Current color (if in static color mode)")
     last_seen: datetime = Field(..., description="Last time the candlestick was seen")
 
-    class Config:
-        schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "id": "candlestick_001",
                 "connected": True,
@@ -56,6 +57,7 @@ class CandlestickState(BaseModel):
                 "last_seen": "2025-10-16T10:30:00"
             }
         }
+    }
 
 
 class CandlestickListResponse(BaseModel):
@@ -67,8 +69,9 @@ class WebSocketMessage(BaseModel):
     """Base WebSocket message structure"""
     type: MessageType
     
-    class Config:
-        use_enum_values = True
+    model_config = {
+        "use_enum_values": True
+    }
 
 
 class StatusMessage(WebSocketMessage):
