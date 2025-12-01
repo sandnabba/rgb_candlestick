@@ -30,6 +30,23 @@ button:active {
   transform: translateY(0);
 }
 
+/* Disabled button styles */
+button:disabled {
+  background-color: #e0e0e0 !important;
+  color: #9e9e9e !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  box-shadow: none !important;
+  transform: none !important;
+  animation: none !important;
+  border-color: #ccc !important;
+}
+
+button:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* Make status box look clickable */
 div[style*="cursor: pointer"]:hover {
   opacity: 0.8;

@@ -11,32 +11,38 @@ The backend uses a reversed architecture where:
 
 ## Requirements
 
-* Python 3.8+
+The backend is designed to run in Docker and includes:
+* Python 3.10+
 * FastAPI
 * uvicorn
 * websockets
 * pydantic
 
-## Installation
+## Building and Running with Docker
 
-### Python virtual environment
+The recommended way to run the backend is using Docker. The Dockerfile is a multi-stage build that:
+1. Builds the web frontend (React/TypeScript/Vite)
+2. Creates the Python backend image with the compiled frontend
+
+### Build the Docker image
 
 ```sh
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
+docker build -t rgb-candlestick-backend .
 ```
 
-## Running
+### Run the container
 
-Start the backend server:
 ```sh
-python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+docker run -d -p 8000:8000 --name rgb-backend rgb-candlestick-backend
 ```
 
-Or using the provided script:
+The server will be available at `http://localhost:8000`
+
+### Development with Docker
+
+To rebuild after changes:
 ```sh
-python3 main.py
+docker build -t rgb-candlestick-backend . && docker rm -f rgb-backend && docker run -d -p 8000:8000 --name rgb-backend rgb-candlestick-backend
 ```
 
 ## API Documentation

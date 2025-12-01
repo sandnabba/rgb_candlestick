@@ -1,39 +1,29 @@
 import './App.css';
-import { useState, useEffect } from 'react';
-import { handleButtonClick, handleSliderChange, handleColorChange, getCandlestick, getCurrentCandlestickId, Candlestick } from './http_handler';
+import { useState } from 'react';
+import { handleButtonClick, handleSliderChange, handleColorChange } from './http_handler';
 import { ConnectionStatus } from './ConnectionStatus';
+import { useCandlestick } from './CandlestickContext';
 
 function App() {
-  const [candlestickState, setCandlestickState] = useState<Candlestick | null>(null);
+  const { selectedCandlestick: candlestickState } = useCandlestick();
   const [showDebug, setShowDebug] = useState(false);
-
-  // Fetch candlestick state periodically
-  useEffect(() => {
-    const fetchState = async () => {
-      try {
-        const id = getCurrentCandlestickId();
-        const state = await getCandlestick(id);
-        setCandlestickState(state);
-      } catch (error) {
-        console.error('Failed to fetch candlestick state:', error);
-      }
-    };
-
-    fetchState();
-    const interval = setInterval(fetchState, 2000); // Update every 2 seconds
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Helper function to check if a program is active
   const isActiveProgram = (program: string) => {
+    // Don't show active state if disconnected
+    if (!candlestickState?.connected) return false;
     return candlestickState?.program === program;
   };
 
   // Helper function to check if a direction is active
   const isActiveDirection = (direction: string) => {
+    // Don't show active state if disconnected
+    if (!candlestickState?.connected) return false;
     return candlestickState?.direction === direction;
   };
+
+  // Check if controls should be disabled
+  const isDisconnected = !candlestickState?.connected;
 
   // Toggle debug modal
   const toggleDebug = () => {
@@ -99,6 +89,13 @@ function App() {
       <div style={{ textAlign: "center", marginTop: "25px" }}>
         <h1>Sandnabba Candlestick Controller - v2025</h1>
         
+        {/* Disconnected Overlay */}
+        {candlestickState && !candlestickState.connected && (
+          <div style={disconnectedBannerStyle}>
+            ⚠️ Candlestick Disconnected - Waiting for connection...
+          </div>
+        )}
+        
         <div>
         {/* Program Buttons */}
         <div style={{ marginBottom: "20px" }}>
@@ -118,6 +115,7 @@ function App() {
             }
             style={isActiveProgram("rb") ? activeButtonStyle : buttonStyle}
             className={isActiveProgram("rb") ? "active-btn" : ""}
+            disabled={isDisconnected}
           >
             🌈 Rainbow
           </button>
@@ -351,6 +349,19 @@ const debugCloseButtonStyle: React.CSSProperties = {
   cursor: "pointer",
   fontSize: "14px",
   fontWeight: "bold",
+};
+
+const disconnectedBannerStyle: React.CSSProperties = {
+  backgroundColor: "#ffebee",
+  border: "2px solid #f44336",
+  borderRadius: "8px",
+  padding: "15px",
+  margin: "20px auto",
+  maxWidth: "600px",
+  color: "#c62828",
+  fontSize: "16px",
+  fontWeight: "bold",
+  boxShadow: "0 2px 8px rgba(244, 67, 54, 0.2)",
 };
 
 export default App;

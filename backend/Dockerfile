@@ -1,9 +1,18 @@
 # Stage 1: Build the webapp
 FROM node:18 AS webapp-build
-WORKDIR /webapp
-COPY webapp/rgb_app/ ./rgb_app/
 WORKDIR /webapp/rgb_app
-RUN npm install && npm run build
+
+# Copy package files first for better Docker layer caching
+COPY webapp/rgb_app/package*.json ./
+
+# Install all dependencies (including devDependencies needed for build)
+RUN npm install --include=dev
+
+# Copy source files (node_modules excluded via .dockerignore)
+COPY webapp/rgb_app/ ./
+
+# Build the app
+RUN npm run build
 
 # Stage 2: Build the backend
 FROM python:3.10-slim AS backend
