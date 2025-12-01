@@ -9,6 +9,12 @@ The backend uses a reversed architecture where:
 - **Web frontend** queries the backend via REST API
 - The backend acts as a central hub managing multiple candlestick devices
 
+The FastAPI server serves everything from a single port (8000):
+- `/` - Static files (the compiled React web frontend)
+- `/api/*` - REST API endpoints
+- `/ws/*` - WebSocket endpoints for controllers
+- `/docs` - Swagger API documentation
+
 ## Requirements
 
 The backend is designed to run in Docker and includes:
@@ -22,7 +28,7 @@ The backend is designed to run in Docker and includes:
 
 The recommended way to run the backend is using Docker. The Dockerfile is a multi-stage build that:
 1. Builds the web frontend (React/TypeScript/Vite)
-2. Creates the Python backend image with the compiled frontend
+2. Creates the Python backend image with the compiled frontend served as static files
 
 ### Build the Docker image
 
@@ -37,6 +43,17 @@ docker run -d -p 8000:8000 --name rgb-backend rgb-candlestick-backend
 ```
 
 The server will be available at `http://localhost:8000`
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CORS_ORIGINS` | `*` | Comma-separated list of allowed CORS origins. Set to specific domains in production (e.g., `https://example.com,https://app.example.com`) |
+
+Example with custom CORS origins:
+```sh
+docker run -d -p 8000:8000 -e CORS_ORIGINS="https://example.com" --name rgb-backend rgb-candlestick-backend
+```
 
 ### Development with Docker
 
