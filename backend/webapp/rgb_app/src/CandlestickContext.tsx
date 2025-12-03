@@ -2,7 +2,7 @@
 // This eliminates duplicate API polling by providing a single source of truth
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Candlestick, listCandlesticks, getCurrentCandlestickId, setCurrentCandlestickId } from './http_handler';
+import { Candlestick, listCandlesticks, setCurrentCandlestickId } from './http_handler';
 
 interface CandlestickContextType {
   candlesticks: Candlestick[];
@@ -23,7 +23,8 @@ interface CandlestickProviderProps {
 
 export const CandlestickProvider = ({ children, pollInterval = 3000 }: CandlestickProviderProps) => {
   const [candlesticks, setCandlesticks] = useState<Candlestick[]>([]);
-  const [selectedId, setSelectedIdState] = useState<string>(getCurrentCandlestickId());
+  // Start with empty string to allow auto-selection of first connected candlestick
+  const [selectedId, setSelectedIdState] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,8 +34,9 @@ export const CandlestickProvider = ({ children, pollInterval = 3000 }: Candlesti
       setCandlesticks(sticks);
       setError(null);
       
-      // If no selection yet and we have candlesticks, select the first connected one
-      if (!selectedId && sticks.length > 0) {
+      // Auto-select logic: if current selection is not in the list (or empty), select first connected
+      const currentSelectionExists = sticks.some(c => c.id === selectedId);
+      if ((!selectedId || !currentSelectionExists) && sticks.length > 0) {
         const firstConnected = sticks.find(c => c.connected);
         const newId = firstConnected?.id || sticks[0].id;
         setSelectedIdState(newId);
