@@ -11,21 +11,30 @@ import argparse
 import logging
 import asyncio
 import os
+import time
 
 from backend_client import BackendClient
 import candlestick as rgb_serial
 
 logger = logging.getLogger(__name__)
 
+# Default settings (used on startup and after inactivity timeout)
+DEFAULT_PROGRAM = "random"
+DEFAULT_SPEED = 10
+DEFAULT_DIRECTION = None
+DEFAULT_COLOR = None
+INACTIVITY_TIMEOUT_SECONDS = 60
+
 # Global state
-current_program = "random"
+current_program = DEFAULT_PROGRAM
 random_mode = True  # Track if we're in random mode
-current_speed = Value('i', 10)
-current_direction = None
-current_color = None
+current_speed = Value('i', DEFAULT_SPEED)
+current_direction = DEFAULT_DIRECTION
+current_color = DEFAULT_COLOR
 candle_process = None
 controller = None
 backend_client = None  # Global reference to backend client for status updates
+last_command_time = None  # Track when the last command was received
 # Shared arrays to communicate the actual running state from the subprocess
 # Size 20 should be enough for program names and direction
 current_program_shared = Array('c', 20)
@@ -77,9 +86,12 @@ async def handle_backend_command(command: dict):
     Handle commands received from the backend via WebSocket.
     This is called by the BackendClient when a command is received.
     """
-    global current_program, random_mode, current_speed, current_direction, current_color, candle_process, controller, backend_client
+    global current_program, random_mode, current_speed, current_direction, current_color, candle_process, controller, backend_client, last_command_time
     
     logger.info(f"Received command from backend: {command}")
+    
+    # Update last command time for inactivity tracking
+    last_command_time = time.time()
     
     try:
         if 'direction' in command:
@@ -197,9 +209,70 @@ async def monitor_program_changes():
             logger.error(f"Error monitoring program changes: {e}")
 
 
-async def run_with_backend(backend_url: str, candlestick_id: str):
+async def reset_to_defaults():
+    """
+    Reset the candlestick to default settings.
+    Called after inactivity timeout or can be called manually.
+    """
+    global current_program, random_mode, current_speed, current_direction, current_color, backend_client
+    
+    logger.info("Resetting to default settings")
+    
+    current_program = DEFAULT_PROGRAM
+    random_mode = True
+    current_speed.value = DEFAULT_SPEED
+    current_direction = DEFAULT_DIRECTION
+    current_color = DEFAULT_COLOR
+    
+    # Restart with default program
+    restart_candle(current_program, current_speed, current_direction)
+    
+    # Send status update to backend
+    if backend_client and backend_client.connected:
+        await backend_client.send_status(
+            program=current_program,
+            random=random_mode,
+            speed=current_speed.value,
+            direction=current_direction,
+            color=current_color
+        )
+        logger.info("Sent default status to backend after reset")
+
+
+async def monitor_inactivity(timeout_seconds: int = INACTIVITY_TIMEOUT_SECONDS):
+    """
+    Background task that monitors for inactivity and resets to defaults
+    after timeout_seconds of no commands from the frontend.
+    
+    Args:
+        timeout_seconds: Seconds of inactivity before resetting to defaults
+    """
+    global last_command_time
+    
+    while True:
+        await asyncio.sleep(5)  # Check every 5 seconds
+        
+        # Skip if no command has been received yet (still on defaults)
+        if last_command_time is None:
+            continue
+        
+        # Check if we've exceeded the inactivity timeout
+        elapsed = time.time() - last_command_time
+        if elapsed >= timeout_seconds:
+            logger.info(f"Inactivity timeout reached ({timeout_seconds}s), resetting to defaults")
+            await reset_to_defaults()
+            # Reset the timer to prevent repeated resets
+            last_command_time = None
+
+
+async def run_with_backend(backend_url: str, candlestick_id: str, inactivity_timeout: int = INACTIVITY_TIMEOUT_SECONDS):
     """
     Main async function that runs the controller with backend connection.
+    
+    Args:
+        backend_url: WebSocket URL of the backend server
+        candlestick_id: Unique identifier for this candlestick
+        inactivity_timeout: Seconds of inactivity before resetting to defaults
     """
     global candle_process, controller, current_program, current_speed, current_direction, backend_client
     
@@ -234,6 +307,9 @@ async def run_with_backend(backend_url: str, candlestick_id: str):
     # Start background task to monitor program changes
     monitor_task = asyncio.create_task(monitor_program_changes())
     
+    # Start background task to monitor inactivity and reset to defaults
+    inactivity_task = asyncio.create_task(monitor_inactivity(inactivity_timeout))
+    
     # Run the client (this will keep reconnecting if connection is lost)
     try:
         await backend_client.run()
@@ -241,8 +317,13 @@ async def run_with_backend(backend_url: str, candlestick_id: str):
         logger.info("Keyboard interrupt received")
     finally:
         monitor_task.cancel()
+        inactivity_task.cancel()
         try:
             await monitor_task
+        except asyncio.CancelledError:
+            pass
+        try:
+            await inactivity_task
         except asyncio.CancelledError:
             pass
         
@@ -264,13 +345,15 @@ def main():
     # Get configuration from command line or environment
     backend_url = args.backend_url or os.getenv('BACKEND_URL', 'ws://localhost:8000')
     candlestick_id = args.candlestick_id or os.getenv('CANDLESTICK_ID', 'candlestick_001')
+    inactivity_timeout = args.inactivity_timeout or int(os.getenv('INACTIVITY_TIMEOUT', str(INACTIVITY_TIMEOUT_SECONDS)))
     
     logger.info(f"Backend URL: {backend_url}")
     logger.info(f"Candlestick ID: {candlestick_id}")
+    logger.info(f"Inactivity timeout: {inactivity_timeout}s")
     
     # Run the async application
     try:
-        asyncio.run(run_with_backend(backend_url, candlestick_id))
+        asyncio.run(run_with_backend(backend_url, candlestick_id, inactivity_timeout))
     except KeyboardInterrupt:
         logger.info("Application terminated by user")
     except Exception as e:
@@ -308,6 +391,11 @@ def parse_args():
     parser.add_argument(
         '--candlestick-id',
         help="Unique identifier for this candlestick (default: candlestick_001 or CANDLESTICK_ID env var)"
+    )
+    parser.add_argument(
+        '--inactivity-timeout',
+        type=int,
+        help=f"Seconds of inactivity before resetting to defaults (default: {INACTIVITY_TIMEOUT_SECONDS} or INACTIVITY_TIMEOUT env var)"
     )
     return parser.parse_args()
 

@@ -9,6 +9,7 @@ WorkingDirectory=/opt/rgb_candlestick/controller/src
 Environment="PATH=/opt/rgb_candlestick/controller/.venv/bin"
 Environment="BACKEND_URL=ws://localhost:8000"
 Environment="CANDLESTICK_ID=candlestick_001"
+Environment="INACTIVITY_TIMEOUT=60"
 ExecStart=/opt/rgb_candlestick/controller/.venv/bin/python3 main_websocket.py --log-level INFO
 Restart=always
 RestartSec=10
