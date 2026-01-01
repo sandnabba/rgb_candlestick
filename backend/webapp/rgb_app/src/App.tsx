@@ -1,12 +1,50 @@
 import './App.css';
-import { useState } from 'react';
-import { handleButtonClick, handleSliderChange, handleColorChange } from './http_handler';
+import React, { useState, useEffect } from 'react';
+import { handleButtonClick, sendCommand, getCurrentCandlestickId } from './http_handler';
 import { ConnectionStatus } from './ConnectionStatus';
 import { useCandlestick } from './CandlestickContext';
 
 function App() {
   const { selectedCandlestick: candlestickState } = useCandlestick();
   const [showDebug, setShowDebug] = useState(false);
+  
+  // Local state for immediate UI feedback on slider and color picker
+  const [localSpeed, setLocalSpeed] = useState<number>(20);
+  const [localColor, setLocalColor] = useState<string>("#ff0000");
+  
+  // Sync local state with backend state when it changes
+  useEffect(() => {
+    if (candlestickState?.speed !== null && candlestickState?.speed !== undefined) {
+      setLocalSpeed(candlestickState.speed);
+    }
+  }, [candlestickState?.speed]);
+  
+  useEffect(() => {
+    if (candlestickState?.color) {
+      setLocalColor(candlestickState.color);
+    }
+  }, [candlestickState?.color]);
+
+  // Local handlers for immediate UI feedback
+  const handleLocalSliderChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value);
+    setLocalSpeed(value);  // Update UI immediately
+    try {
+      await sendCommand(getCurrentCandlestickId(), { speed: value });
+    } catch (error) {
+      console.error("Error sending speed:", error);
+    }
+  };
+
+  const handleLocalColorChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const color = event.target.value;
+    setLocalColor(color);  // Update UI immediately
+    try {
+      await sendCommand(getCurrentCandlestickId(), { color: color });
+    } catch (error) {
+      console.error("Error sending color:", error);
+    }
+  };
 
   // Helper function to check if a program is active
   const isActiveProgram = (program: string) => {
@@ -171,12 +209,12 @@ function App() {
             type="range"
             min="3"
             max="40"
-            value={candlestickState?.speed || 20}
-            onChange={handleSliderChange}
+            value={localSpeed}
+            onChange={handleLocalSliderChange}
             style={{ width: "300px" }}
           />
           <p>
-            Speed: <span id="sliderValue">{candlestickState?.speed || 15}</span>
+            Speed: <span id="sliderValue">{localSpeed}</span>
           </p>
         </div>
 
@@ -187,11 +225,11 @@ function App() {
             type="color"
             id="colorPicker"
             name="color"
-            value={candlestickState?.color || "#ff0000"}
-            onChange={handleColorChange}
+            value={localColor}
+            onChange={handleLocalColorChange}
           />
           <p>
-            Selected Color: <span id="colorValue">{candlestickState?.color || "#ff0000"}</span>
+            Selected Color: <span id="colorValue">{localColor}</span>
           </p>
         </div>
 
