@@ -1,27 +1,31 @@
 # 2025.12
 
-Reversed controller architecture. Now the candlestick connects to the controller, instead of the controller connecting to the candlestick.
-Main frontend moved to stand alone webapp which could run on another computer.
+Reversed controller architecture. The candlestick now connects to the controller, instead of the controller connecting to the candlestick.  
+The main frontend was moved to a standalone web app, which can run on another computer.
 
-* Added candlestick state tracking to the controller.
-* Frontend displays current state of the candlestick (+ updates)
-* Docker files added
+* Added candlestick state tracking to the controller  
+* Frontend displays the current state of the candlestick (with live updates)  
+* Docker files added  
 * Minor frontend updates (icons)
 
-# Version 2 (2024.12): 
+# Version 2 (2024.12)
 
-2024-2025 season. First official "release" and major update.
+2024–2025 season. First official “release” and major update.
 
-* Renamed branches from master -> main
-* Updated frontend from Mithril -> React
-* Proper Python package for serial and RGB controller.
-* Logging using logging module
-* Lots of improvements and clean up
-* Systemd unit added
-* Ansible playbook added
+* Renamed branches from `master` to `main`  
+* Updated frontend from Mithril to React  
+* Proper Python package for the serial and RGB controller  
+* Logging implemented using the `logging` module  
+* Lots of improvements and cleanup  
+* systemd unit added  
+* Ansible playbook added  
 
-All software still running on the Raspberry pi.
+All software is still running on the Raspberry Pi.
 
-# Version 1 - Pre 2023
+# Version 1 (≈ 2017–2023)
 
-Arduino nano candlestick hardware. 
+First version, with a very hacky setup.
+
+Arduino Nano–based candlestick hardware.  
+Raspberry Pi as the controller, with a web app built using the Mithril framework.
+
